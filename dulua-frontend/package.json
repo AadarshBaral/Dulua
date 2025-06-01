@@ -1,24 +1,25 @@
 {
-  "dependencies": {
-    "@next/eslint-plugin-next": "^15.3.3",
-    "@tailwindcss/postcss": "^4.1.8",
-    "next": "^15.3.3",
-    "postcss": "^8.5.4",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.8"
-  },
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "devDependencies": {
-    "@types/node": "22.15.29",
-    "@types/react": "19.1.6",
-    "eslint-config-next": "15.3.3",
-    "eslint-config-prettier": "^10.1.5",
-    "typescript": "5.8.3"
-  }
+    "dependencies": {
+        "@next/eslint-plugin-next": "^15.3.3",
+        "@tailwindcss/postcss": "^4.1.8",
+        "next": "^15.3.3",
+        "postcss": "^8.5.4",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "tailwindcss": "^4.1.8"
+    },
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "devDependencies": {
+        "@types/node": "22.15.29",
+        "@types/react": "19.1.6",
+        "eslint-config-next": "15.3.3",
+        "eslint-config-prettier": "^10.1.5",
+        "prettier": "3.5.3",
+        "typescript": "5.8.3"
+    }
 }
