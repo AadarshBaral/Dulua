@@ -55,7 +55,7 @@
 
 | Component       | Technology                |
 | --------------- | ------------------------- |
-| Frontend        | React.js                  |
+| Frontend        | Next.js                   |
 | Backend         | FastAPI                   |
 | Database        | PostgreSQL                |
 | Detection       | YOLOv8 (Ultralytics)      |
@@ -91,8 +91,8 @@ Used for YOLOv8 model training. Contains 1,500+ annotated images across various 
 ## 👨‍💻 Team Dulua
 
 - **Aadarsh Baral**
-- **Sabin Poudel**
 - **Pawan Dhoj Adhikari**
+- **Sabin Poudel**
 
 ---
 
