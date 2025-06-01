@@ -1,0 +1,32 @@
+# Node.js / Next.js
+dulua-frontend/node_modules/
+dulua-frontend/.next/
+dulua-frontend/.env
+dulua-frontend/.env.local
+dulua-frontend/.env.*.local
+dulua-frontend/coverage/
+dulua-frontend/package-lock.json # optional if you want to exclude lockfile
+
+# Python / FastAPI
+**/__pycache__/
+dulua-backend/.venv/
+dulua-backend/dulua-env/
+dulua-backend/env/
+dulua-backend/.env
+dulua-backend/*.pyc
+dulua-backend/.mypy_cache/
+dulua-backend/.pytest_cache/
+dulua-backend/.DS_Store
+
+
+# General
+*.log
+*.sqlite3
+*.db
+*.swp
+.DS_Store
+.env
+
+
+#vs
+.vscode/
