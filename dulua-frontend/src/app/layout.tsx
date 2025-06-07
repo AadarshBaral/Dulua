@@ -1,6 +1,14 @@
 import type { Metadata } from "next"
-
 import "../globals.css"
+import AuthLayout from "@components/auth/authLayout"
+import StoreProvider from "./storeprovider"
+import { Manrope } from "next/font/google"
+
+const inter = Manrope({
+    subsets: ["latin"],
+    weight: ["400", "700"], // optional
+    display: "swap", // improves performance
+})
 
 export const metadata: Metadata = {
     title: "Dulua",
@@ -14,7 +22,12 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body>{children}</body>
+            <StoreProvider>
+                <body className={inter.className}>
+                    <AuthLayout />
+                    {children}
+                </body>
+            </StoreProvider>
         </html>
     )
 }
