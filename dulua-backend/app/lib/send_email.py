@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 def send_email(recipient, code):
     subject = "Dulua | Your Verification Code"
     sender = "gk7125690@gmail.com"
-    password = "brytzecbprkbykqn"  # Insert your app-specific or email password here
+    password = ""
 
     body = f"""
     <html>
