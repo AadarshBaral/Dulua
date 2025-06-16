@@ -1,5 +1,4 @@
 from fastapi.staticfiles import StaticFiles
-from re import U
 from uuid import UUID
 import uuid
 from app.session import get_session
@@ -74,10 +73,6 @@ async def get_place(place_id: UUID, session: Session = Depends(get_session)):
                                longitude=geo_location.longitude, description=geo_location.description)
 
     return place_result
-
-
-UPLOAD_DIR = Path("uploads/reviews")
-UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 
 @router.post("/add_review")
