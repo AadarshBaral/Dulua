@@ -14,9 +14,10 @@ from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from app.session import get_session
+from app.config import settings
 router = APIRouter()
 app = FastAPI()
-SECRET_KEY = "c1946c22beeede02c557771da8004ec81812093183ae8b53781eb52d632e301e"
+SECRET_KEY = settings.APP_SECRET
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRATION_MINUTES = 30
 

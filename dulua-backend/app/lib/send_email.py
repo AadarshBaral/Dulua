@@ -1,11 +1,13 @@
 import smtplib
 from email.mime.text import MIMEText
+import os
+from app.config import settings
 
 
 def send_email(recipient, code):
     subject = "Dulua | Your Verification Code"
-    sender = "gk7125690@gmail.com"
-    password = ""
+    sender = settings.EMAIL
+    password = settings.GMAIL_APP_PASSWORD
 
     body = f"""
     <html>
