@@ -1,3 +1,5 @@
+"use client"
+import Review from "@components/ui/review"
 import React from "react"
 
 interface Props {
@@ -6,6 +8,10 @@ interface Props {
 
 export default async function PlaceDetail({ params }: Props) {
     const { place_detail } = await params
-
-    return <div>Place Detail {place_detail}</div>
+    console.log("hello place")
+    return (
+        <>
+            <Review />
+        </>
+    )
 }
