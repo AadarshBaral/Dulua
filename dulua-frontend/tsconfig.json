@@ -23,6 +23,9 @@
             ],
             "@app/*": [
                 "app/*"
+            ],
+            "@api/*": [
+                "api/*"
             ]
         },
         "skipLibCheck": true,
