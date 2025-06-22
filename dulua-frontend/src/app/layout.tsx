@@ -3,6 +3,7 @@ import "../globals.css"
 import AuthLayout from "@components/auth/authLayout"
 import StoreProvider from "./storeprovider"
 import { Manrope } from "next/font/google"
+import DuluaNav from "@components/ui/DuluaNav"
 
 const inter = Manrope({
     subsets: ["latin"],
@@ -25,7 +26,10 @@ export default function RootLayout({
             <StoreProvider>
                 <body className={inter.className}>
                     <AuthLayout />
-                    {children}
+                    <div className="mw-container  mx-[200px]">
+                        <DuluaNav heroDetail={true} heroTitle={"Pokhara"} />
+                        {children}
+                    </div>
                 </body>
             </StoreProvider>
         </html>

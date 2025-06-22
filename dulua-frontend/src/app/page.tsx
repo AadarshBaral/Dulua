@@ -1,49 +1,46 @@
-"use client"
-import AuthLayout from "@components/auth/authLayout"
-import { Button } from "@components/ui/button"
-import { cn } from "@lib/utils"
-import Link from "next/link"
-import { useDispatch } from "react-redux"
-import { openModal } from "store/appSlice/authLayout"
+import Image from "next/image"
+import React from "react"
 
-export default function Page() {
-    const dispatch = useDispatch()
-
+const NearbyCarousel = () => {
     return (
-        <div
-            className={cn(
-                "flex flex-col items-center justify-center min-h-screen px-4 py-12 sm:px-6 lg:px-8"
-            )}
-        >
-            <h1 className="text-4xl text-green-900">
-                Hello, Dulua Lorem ipsum dolor, sit amet consectetur adipisicing
-                elit. Quas aperiam dolore rem harum, molestias rerum iure et
-                architecto tempore quasi possimus officia non. Quas reiciendis
-                nostrum minima autem deleniti iusto asperiores iste quaerat
-                expedita dolore! Adipisci, aperiam. Maxime labore culpa quisquam
-                reiciendis consequatur ipsa atque modi voluptatum. Minima odio
-                excepturi error labore ab dolorum quasi harum? Exercitationem
-                iste voluptate nam vero. Fugiat inventore at perferendis cum hic
-                nesciunt, architecto nihil necessitatibus ex sapiente sed enim,
-                incidunt fugit rem dignissimos eligendi eos. Facere sapiente,
-                optio, quibusdam officiis nostrum, ratione ipsam aspernatur sed
-                reprehenderit deserunt molestiae modi eum culpa tenetur. Labore,
-                nesciunt!
-            </h1>
-            ;
-            <Link href="/profile/1">
-                <p>To Profile</p>
-            </Link>
-            <Link href="place/davis-falls">
-                <p>To Davis Falls</p>
-            </Link>
-            <Link href="place/kahun-dada">
-                <p>To Kahun Data</p>
-            </Link>
-            <Link href="/city-map/">
-                <p>City Map</p>
-            </Link>
-            <Button onClick={() => dispatch(openModal())}>Hello</Button>
+        <div className="relative p-4 mx-20 ">
+            {/* Header */}
+
+            <div className="flex gap-4 mt-8 h-[60vh]">
+                {/* Left Card */}
+                <div className="relative w-1/2  overflow-hidden ">
+                    <Image
+                        width={500}
+                        height={500}
+                        src={"/batcave.png"}
+                        alt="Bat Cave"
+                        className="w-full h-full object-fill rounded-4xl "
+                    />
+                    <div className="overlay bg-gradient-to-t from-black/40 to-transparent absolute top-0 left-0 w-full h-full rounded-4xl"></div>
+
+                    <div className="absolute z-0 bottom-2 w-[95%] ml-auto mr-auto left-0 right-0 h-fit rounded-4xl text-white bg-green-900/ bg-opacity-50  p-4   bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-60">
+                        <h3 className="font-semibold">Bat Cave</h3>
+                        <p className="text-sm">Dare to explore?</p>
+                    </div>
+                </div>
+                <div className="relative w-1/2  overflow-hidden ">
+                    <Image
+                        width={500}
+                        height={500}
+                        src={"/batcave.png"}
+                        alt="Bat Cave"
+                        className="w-full h-full object-fill rounded-4xl "
+                    />
+                    <div className="overlay bg-gradient-to-t from-black/40 to-transparent absolute top-0 left-0 w-full h-full rounded-4xl"></div>
+
+                    <div className="absolute z-0 bottom-2 w-[95%] ml-auto mr-auto left-0 right-0 h-fit rounded-4xl text-white bg-green-900/ bg-opacity-50  p-4   bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-60">
+                        <h3 className="font-semibold">Another Bat Cave</h3>
+                        <p className="text-sm">Dare to explore?</p>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
+
+export default NearbyCarousel
