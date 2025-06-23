@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit"
-import authLayoutReducer from "./appSlice/authLayout"
+import authLayoutReducer from "./appSlice/modalStore"
+import authSliceReducer from "./appSlice/authSlice"
 export const makeStore = () => {
     return configureStore({
         reducer: {
-            authLayout: authLayoutReducer,
+            authModal: authLayoutReducer,
+            auth: authSliceReducer,
         },
     })
 }

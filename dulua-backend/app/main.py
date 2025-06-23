@@ -1,4 +1,5 @@
 
+from fastapi.staticfiles import StaticFiles
 from app.session import get_session, create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
 import time
@@ -18,12 +19,17 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 origins = [
     "http://localhost",
     "http://localhost:8080",
+    "http://localhost:3000",
 ]
 
 
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+
+
+app.mount("/city/images/reviews",
+          StaticFiles(directory="uploads/reviews"), name="review_images")
 
 
 app.add_middleware(

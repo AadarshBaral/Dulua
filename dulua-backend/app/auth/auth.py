@@ -107,7 +107,6 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
 
     user = authenticate_user(
         form_data.username, form_data.password, session)
-    print('here', user)
 
     if not user:
         raise HTTPException(
@@ -117,10 +116,10 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRATION_MINUTES)
     print(access_token_expires)
+    print(user)
     access_token = create_access_token(
         data={"sub": user.name}, expires_delta=access_token_expires
     )
-    print("hello", access_token)
     return Token(access_token=access_token, token_type="bearer")
 
 
@@ -132,7 +131,8 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
 async def read_users_me(
     current_user: Annotated[UserDB, Depends(get_current_active_user)],
 ):
-    return {"message": "Hello " + current_user.name}
+    print(current_user)
+    return {"username": current_user.name, "email": current_user.email}
 
 
 @router.post("/register")

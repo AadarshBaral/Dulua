@@ -1,15 +1,25 @@
 import stat
+from fastapi.staticfiles import StaticFiles
 from uuid import UUID
-from pydantic import Field,EmailStr
+from pydantic import Field, EmailStr
+import uuid
 from app.session import get_session
-from fastapi import HTTPException, UploadFile, File, APIRouter, Depends
-from typing import Annotated
+from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
+from typing import Annotated, List
 from sqlmodel import Session, select
-from app.models.core_models import City, Geolocation, GeolocationCreate, Place, PublicCity, PublicPlace,LocalGuide
+from app.models.core_models import City, Geolocation, GeolocationCreate, Place, PublicCity, PublicPlace, LocalGuide
 import os
 from uuid import uuid4
 from main import UPLOAD_DIR
+from app.models.core_models import City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic
+from pathlib import Path
+import shutil
+from fastapi import Request
 router = APIRouter()
+
+
+UPLOAD_DIR = Path("uploads/reviews")
+UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 
 @router.post("/add_geo_location")
@@ -71,28 +81,101 @@ async def get_place(place_id: UUID, session: Session = Depends(get_session)):
     return place_result
 
 
+@router.post("/add_review")
+async def add_review(
+    place_id: str = Form(...),
+    tourist_id: str = Form(...),
+    rating: int = Form(...),
+    comment: str = Form(...),
+    timestamp: str = Form(...),
+    images: List[UploadFile] = File([]),
+    session: Session = Depends(get_session)
+):
+
+    place_uuid = UUID(place_id)
+    tourist_uuid = UUID(tourist_id)
+
+    review = Review(
+        place_id=place_uuid,
+        tourist_id=tourist_uuid,
+        rating=rating,
+        comment=comment,
+        timestamp=timestamp
+    )
+    session.add(review)
+    session.commit()
+    session.refresh(review)
+
+    for image in images:
+        print("Processing image")
+        if not image.content_type.startswith("image/"):
+            raise HTTPException(
+                status_code=400, detail="File must be an image")
+
+        ext = image.filename.split(".")[-1].lower()
+        if ext not in ["jpg", "jpeg", "png"]:
+            raise HTTPException(status_code=400, detail="Invalid image format")
+
+        new_filename = f"{uuid.uuid4()}.{ext}"
+        file_path = UPLOAD_DIR / new_filename
+
+        with file_path.open("wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+
+        img_data = ImageData(
+            image=new_filename, review_id=review.review_id, place_id=review.place_id)
+        session.add(img_data)
+
+    session.commit()
+
+    return {"message": "Review added", "review_id": review.review_id}
+
+
+@router.get("/get_reviews/{place_id}", response_model=List[ReviewPublic])
+async def get_review(request: Request, place_id: UUID, session: Session = Depends(get_session)):
+    baseurl = str(request.base_url).rstrip("/")
+    review = session.exec(select(Review).where(Review.place_id == place_id))
+    images = session.exec(select(ImageData).where(
+        ImageData.place_id == place_id))
+
+    reviews = []
+    for rev in review:
+
+        review_data = ReviewPublic(
+            place_id=rev.place_id,
+            tourist_id=rev.tourist_id,
+            rating=rev.rating,
+            comment=rev.comment,
+            timestamp=rev.timestamp,
+            images=[f"{baseurl}/images/reviews/{ImageData(**img.dict()).image}"
+                    for img in images if img.review_id == rev.review_id]
+        )
+        reviews.append(review_data)
+
+    return reviews
+
 
 @router.post("/local-guide")
 async def add_local_guide(
-    id_image1: UploadFile = File(...),
-    id_image2: UploadFile = File(...),
-    name: str = Field(...),
-    age: int = Field(...),
-    address: int = Field(...),
-    contact: int = Field(...),
-    email: EmailStr = Field(...),
-    bio: str = Field(...),
-    language: str = Field(...),
-    session: Session = Depends(get_session)):
+        id_image1: UploadFile = File(...),
+        id_image2: UploadFile = File(...),
+        name: str = Field(...),
+        age: int = Field(...),
+        address: int = Field(...),
+        contact: int = Field(...),
+        email: EmailStr = Field(...),
+        bio: str = Field(...),
+        language: str = Field(...),
+        session: Session = Depends(get_session)):
 
     try:
         ext1 = os.path.splitext(id_image1.filename)[1]
         filename1 = f"{uuid4()}{ext1}"
-        filepath1 = os.path.join(UPLOAD_DIR,filename1 )
+        filepath1 = os.path.join(UPLOAD_DIR, filename1)
         with open(filepath1, "wb") as f1:
             content1 = await id_image1.read()
             f1.write(content1)
-        
+
         ext2 = os.path.splitext(id_image2.filename)[1]
         filename2 = f"{uuid4()}{ext2}"
         filepath2 = os.path.join(UPLOAD_DIR, filename2)
@@ -100,7 +183,8 @@ async def add_local_guide(
             content2 = await id_image2.read()
             f2.write(content2)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save images: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save images: {e}")
 
     # Create model instance from form fields
     guide = LocalGuide(
@@ -120,5 +204,3 @@ async def add_local_guide(
     session.refresh(guide)
 
     return {"message": "Local guide added", "guide": guide.dict()}
-   
-

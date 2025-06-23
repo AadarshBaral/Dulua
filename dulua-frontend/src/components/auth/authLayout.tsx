@@ -2,9 +2,9 @@
 import { Button } from "@components/ui/button"
 import { ChevronLeftIcon, Cross, Crosshair, Mail, X } from "lucide-react"
 import Image from "next/image"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { closeModal } from "store/appSlice/authLayout"
+import { closeModal } from "store/appSlice/modalStore"
 import { RootState } from "store/store"
 import { FcGoogle } from "react-icons/fc"
 
@@ -17,7 +17,7 @@ export type Step = "intro" | "login" | "register" | "verifyCode"
 
 const AuthLayout = () => {
     const modalOpen = useSelector(
-        (state: RootState) => state.authLayout.modalOpen
+        (state: RootState) => state.authModal.modalOpen
     )
     const [loginComplete, setLoginCoplete] = useState(false)
     const [registerComplete, setRegisterComplete] = useState(false)
@@ -28,7 +28,7 @@ const AuthLayout = () => {
         setCurrentStep("login" as Step)
     }
     const handleLoginEnd = () => {
-        console.log("Login End")
+        dispatch(closeModal())
     }
     const handleRegisterEnd = () => {
         console.log("Register End")
@@ -37,12 +37,21 @@ const AuthLayout = () => {
         console.log("Verify Code End")
     }
 
+    useEffect(() => {
+        const close = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                dispatch(closeModal())
+            }
+        }
+        window.addEventListener("keydown", close)
+        return () => window.removeEventListener("keydown", close)
+    }, [])
     const [currentStep, setCurrentStep] = useState("intro" as Step)
     return (
         <>
             {modalOpen && (
                 <div
-                    className="wrapper absolute top-0 flex justify-center items-center  w-full h-full bg-black/20"
+                    className="wrapper absolute z-50  top-0 flex justify-center items-center  w-full h-full bg-black/40"
                     onClick={() => dispatch(closeModal())}
                 >
                     <div
@@ -66,7 +75,10 @@ const AuthLayout = () => {
 
                         <div className="px-4">
                             {currentStep === "intro" && (
-                                <Intro loginStart={handleLoginStart} />
+                                <Intro
+                                    loginStart={handleLoginStart}
+                                    changePageState={setCurrentStep}
+                                />
                             )}
                             {currentStep === "login" && (
                                 <LoginForm
@@ -82,6 +94,7 @@ const AuthLayout = () => {
                             )}
                             {currentStep === "verifyCode" && (
                                 <VerifyCodeForm
+                                    changePageState={setCurrentStep}
                                     verifyCodeEnd={handleVerifyCodeEnd}
                                 />
                             )}

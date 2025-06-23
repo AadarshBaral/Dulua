@@ -1,16 +1,16 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 
 import { Button } from "@components/ui/button"
 import { Input } from "@components/ui/input"
 import { RegisterFormInputs, registerSchema } from "@lib/validations"
 import { Step } from "../authLayout"
+import { registerUser } from "@api/auth"
 
 function RegisterForm({
     registerEnd,
@@ -20,6 +20,7 @@ function RegisterForm({
     changePageState: (state: Step) => void
 }) {
     const router = useRouter()
+    const [loading, setLoading] = useState(false)
 
     const {
         register,
@@ -29,12 +30,21 @@ function RegisterForm({
         resolver: zodResolver(registerSchema),
     })
 
-    const onSubmit = (data: RegisterFormInputs) => {
-        console.log("Register data:", data)
+    const onSubmit = async (data: RegisterFormInputs) => {
+        setLoading(true)
+        const response = await registerUser({ data })
+        console.log(response.status)
+        localStorage.setItem("email", data.email)
+        if (response.status === 200) {
+            changePageState("verifyCode")
+        } else {
+            console.error("Registration failed", response.data)
+        }
+        setLoading(false)
     }
 
     return (
-        <div className="h-auto flex items-center justify-center  rounded-xl  w-full ">
+        <div className="h-auto flex items-center justify-center rounded-xl w-full">
             <form
                 onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-4 w-full"
@@ -86,16 +96,26 @@ function RegisterForm({
                     )}
                 </div>
 
-                <Button size={"lg"} onClick={registerEnd} type="submit">
-                    Register
+                <Button onClick={registerEnd} type="submit" disabled={loading}>
+                    {loading ? (
+                        <div className="flex items-center gap-2">
+                            <span className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-white"></span>
+                            Registering...
+                        </div>
+                    ) : (
+                        "Register"
+                    )}
                 </Button>
 
                 <div className="line w-full bg-border h-[1px]" />
 
                 <div className="text-center flex items-center justify-center gap-1 text-sm text-[var(--input-text)]">
                     <p>Already have an account?</p>
-                    <p onClick={() => changePageState("login")}>
-                        <span className="text-primary"> Login</span>{" "}
+                    <p
+                        onClick={() => changePageState("login")}
+                        className="text-accent cursor-pointer"
+                    >
+                        Login
                     </p>
                     instead
                 </div>
