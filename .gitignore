@@ -30,3 +30,4 @@ dulua-backend/.DS_Store
 
 #vs
 .vscode/
+venv/

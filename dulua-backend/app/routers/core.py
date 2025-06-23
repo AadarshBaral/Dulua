@@ -1,10 +1,14 @@
+import stat
 from uuid import UUID
+from pydantic import Field,EmailStr
 from app.session import get_session
 from fastapi import HTTPException, UploadFile, File, APIRouter, Depends
 from typing import Annotated
 from sqlmodel import Session, select
-from app.models.core_models import City, Geolocation, GeolocationCreate, Place, PublicCity, PublicPlace
-
+from app.models.core_models import City, Geolocation, GeolocationCreate, Place, PublicCity, PublicPlace,LocalGuide
+import os
+from uuid import uuid4
+from main import UPLOAD_DIR
 router = APIRouter()
 
 
@@ -65,3 +69,56 @@ async def get_place(place_id: UUID, session: Session = Depends(get_session)):
                                longitude=geo_location.longitude, description=geo_location.description)
 
     return place_result
+
+
+
+@router.post("/local-guide")
+async def add_local_guide(
+    id_image1: UploadFile = File(...),
+    id_image2: UploadFile = File(...),
+    name: str = Field(...),
+    age: int = Field(...),
+    address: int = Field(...),
+    contact: int = Field(...),
+    email: EmailStr = Field(...),
+    bio: str = Field(...),
+    language: str = Field(...),
+    session: Session = Depends(get_session)):
+
+    try:
+        ext1 = os.path.splitext(id_image1.filename)[1]
+        filename1 = f"{uuid4()}{ext1}"
+        filepath1 = os.path.join(UPLOAD_DIR,filename1 )
+        with open(filepath1, "wb") as f1:
+            content1 = await id_image1.read()
+            f1.write(content1)
+        
+        ext2 = os.path.splitext(id_image2.filename)[1]
+        filename2 = f"{uuid4()}{ext2}"
+        filepath2 = os.path.join(UPLOAD_DIR, filename2)
+        with open(filepath2, "wb") as f2:
+            content2 = await id_image2.read()
+            f2.write(content2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save images: {e}")
+
+    # Create model instance from form fields
+    guide = LocalGuide(
+        id_image1=filepath1,
+        id_image2=filepath2,
+        name=name,
+        age=age,
+        address=address,
+        contact=contact,
+        email=email,
+        bio=bio,
+        language=language,
+    )
+
+    session.add(guide)
+    session.commit()
+    session.refresh(guide)
+
+    return {"message": "Local guide added", "guide": guide.dict()}
+   
+
