@@ -1,9 +1,7 @@
-from uuid import UUID
+from uuid import uuid4, UUID
 from pydantic import Field,EmailStr
-import uuid
 from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
-from typing import Annotated, List
 from sqlmodel import Session, select
 import os
 
@@ -17,6 +15,12 @@ router = APIRouter()
 
 UPLOAD_DIR = Path("uploads/reviews")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
+
+UPLOAD_localguide = Path("uploads/localguide")
+UPLOAD_localguide.mkdir(exist_ok=True, parents=True)
+
+
+
 
 
 @router.post("/add_geo_location")
@@ -81,30 +85,37 @@ async def get_place(place_id: UUID, session: Session = Depends(get_session)):
 
 @router.post("/local-guide")
 async def add_local_guide(
-    id_image1: UploadFile = File(...),
+    id_image1:UploadFile=File(...),
     id_image2: UploadFile = File(...),
-    name: str = Field(...),
-    age: int = Field(...),
-    address: int = Field(...),
-    contact: int = Field(...),
-    email: EmailStr = Field(...),
-    bio: str = Field(...),
-    language: str = Field(...),
+    name: str = Form(...),
+    age: int = Form(...),
+    address: str = Form(...),
+    contact:int=Form(...),
+    email: EmailStr = Form(...),
+    bio: str = Form(...),
+    language:str=Form(...),
     session: Session = Depends(get_session)):
+    
+    check = session.exec(select(LocalGuide).where(
+        LocalGuide.email == email)).first()
+    if check:
+        raise HTTPException(status_code=409, detail=f"Local guide with email={email} already exist")
 
+    
+    
     try:
         ext1 = os.path.splitext(id_image1.filename)[1]
         filename1 = f"{uuid4()}{ext1}"
         
 
-        filepath1 = os.path.join(UPLOAD_DIR,filename1 )
+        filepath1 = os.path.join(UPLOAD_localguide,filename1 )
         with open(filepath1, "wb") as f1:
             content1 = await id_image1.read()
             f1.write(content1)
         
         ext2 = os.path.splitext(id_image2.filename)[1]
         filename2 = f"{uuid4()}{ext2}"
-        filepath2 = os.path.join(UPLOAD_DIR, filename2)
+        filepath2 = os.path.join(UPLOAD_localguide, filename2)
         with open(filepath2, "wb") as f2:
             content2 = await id_image2.read()
             f2.write(content2)
@@ -121,7 +132,7 @@ async def add_local_guide(
         contact=contact,
         email=email,
         bio=bio,
-        language=language,
+        language=language
     )
 
     session.add(guide)
@@ -138,7 +149,7 @@ async def add_review(
     rating: int = Form(...),
     comment: str = Form(...),
     timestamp: str = Form(...),
-    images: List[UploadFile] = File([]),
+    images: list[UploadFile] = File([]),
     session: Session = Depends(get_session)
 ):
 
@@ -166,7 +177,7 @@ async def add_review(
         if ext not in ["jpg", "jpeg", "png"]:
             raise HTTPException(status_code=400, detail="Invalid image format")
 
-        new_filename = f"{uuid.uuid4()}.{ext}"
+        new_filename = f"{UUID.uuid4()}.{ext}"
         file_path = UPLOAD_DIR / new_filename
 
         with file_path.open("wb") as buffer:
@@ -178,10 +189,9 @@ async def add_review(
 
     session.commit()
 
-    return {"message": "Review added", "review_id": review.review_id}
 
 
-@router.get("/get_reviews/{place_id}", response_model=List[ReviewPublic])
+@router.get("/get_reviews/{place_id}", response_model=list[ReviewPublic])
 async def get_review(request: Request, place_id: UUID, session: Session = Depends(get_session)):
     baseurl = str(request.base_url).rstrip("/")
     review = session.exec(select(Review).where(Review.place_id == place_id))

@@ -41,10 +41,10 @@ app.add_middleware(
 )
 
 
-app.include_router(detect_trash.router, prefix='/detect_trash')
 app.include_router(auth.router, prefix="/auth",
                    )
 app.include_router(core.router, prefix="/city")
+app.include_router(core.router)
 
 
 @app.get("/")

@@ -1,9 +1,4 @@
-
-from re import L
 from typing import List, Optional
-
-
-from fastapi import UploadFile
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import null
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine
@@ -66,15 +61,13 @@ class LocalGuide(SQLModel, table=True):
                            primary_key=True, nullable=False)
     id_image1: str = Field(index=True, nullable=False)
     id_image2: str = Field(index=True, nullable=False)
-    name: str = Field(index=True, nullable=False)
+    name:str=Field(nullable=False)
     age: int = Field(nullable=False)
-    address: int = Field(index=True, nullable=False)
+    address: str = Field(index=True, nullable=False)
     contact: int = Field(index=True, nullable=False)
     email: EmailStr = Field(index=True, nullable=False)
     bio: str = Field(index=True, nullable=False)
-    language: str = Field(index=True, nullable=False)
-
-
+    language:str=Field(index=True,nullable=False)
 class Review(SQLModel, table=True):
     review_id: UUID = Field(default_factory=uuid.uuid4,
                             primary_key=True, nullable=False)
