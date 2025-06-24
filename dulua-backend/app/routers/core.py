@@ -6,7 +6,6 @@ from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
 from typing import Annotated, List
 from sqlmodel import Session, select
 import os
-from main import UPLOAD_DIR
 
 from app.models.core_models import City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic,LocalGuide
 from pathlib import Path
