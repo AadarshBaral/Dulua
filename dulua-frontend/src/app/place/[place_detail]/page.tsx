@@ -11,6 +11,7 @@ export default async function PlaceDetail({ params }: Props) {
     console.log("hello place")
     return (
         <>
+            <h1>PlaceDetail</h1>
             <Review />
         </>
     )
