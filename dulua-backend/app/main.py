@@ -1,8 +1,8 @@
-
+from .auth import models
+from .routers import core
 from fastapi.staticfiles import StaticFiles
 from app.session import get_session, create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
-import time
 import os
 
 from fastapi import Depends, FastAPI, Request, middleware

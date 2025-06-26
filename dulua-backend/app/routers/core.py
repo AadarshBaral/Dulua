@@ -4,8 +4,7 @@ from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
 from sqlmodel import Session, select
 import os
-
-from app.models.core_models import City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic,LocalGuide
+from app.models.core_models import City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic,LocalGuide, verifyRequest
 from pathlib import Path
 import shutil
 from fastapi import Request
@@ -140,7 +139,17 @@ async def add_local_guide(
     session.refresh(guide)
 
     return {"message": "Local guide added", "guide": guide.dict()}
-   
+
+@router.get("/verifyLocalGuide")
+async def verifyLocalGuide(data:verifyRequest,session:Session=Depends(get_session)):
+    user=session.exec(select(LocalGuide).where(LocalGuide.guide_id==data.id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_verified=True
+    session.add(user)
+    session.commit()
+    return{"message":"User verified as LocalGuide"}
+    
 
 @router.post("/add_review")
 async def add_review(

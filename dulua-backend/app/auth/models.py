@@ -1,6 +1,5 @@
-
-
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field,Relationship
+from typing import Optional
 from pydantic import EmailStr, BaseModel
 from typing import Optional
 from datetime import datetime, timedelta, timezone
@@ -47,7 +46,7 @@ class UserDB(UserBase, table=True):
                      primary_key=True, nullable=False)
     hashed_password: str = Field(nullable=True)
     is_active: bool = Field(default=True, nullable=False)
-
+   
 
 class UserLogin(BaseModel):
     email: EmailStr

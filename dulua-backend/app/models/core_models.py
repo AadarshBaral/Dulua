@@ -68,6 +68,12 @@ class LocalGuide(SQLModel, table=True):
     email: EmailStr = Field(index=True, nullable=False)
     bio: str = Field(index=True, nullable=False)
     language:str=Field(index=True,nullable=False)
+    is_verified:bool=Field(default=False, nullable=False)
+  
+class verifyRequest(BaseModel):
+      id:UUID
+  
+ 
 class Review(SQLModel, table=True):
     review_id: UUID = Field(default_factory=uuid.uuid4,
                             primary_key=True, nullable=False)

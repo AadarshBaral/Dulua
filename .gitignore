@@ -25,6 +25,7 @@ dulua-backend/.DS_Store
 *.swp
 .DS_Store
 .env
+.bat
 
 
 #vs
