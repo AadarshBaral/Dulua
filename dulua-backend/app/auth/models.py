@@ -1,4 +1,5 @@
-from sqlmodel import SQLModel, Field,Relationship
+from enum import Enum
+from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
 from pydantic import EmailStr, BaseModel
 from typing import Optional
@@ -41,12 +42,19 @@ class VerifyOtp(BaseModel):
     otp: str
 
 
+class UserRoleEnum(str, Enum):
+    user = "user"
+    admin = "admin"
+    guide = "guide"
+
+
 class UserDB(UserBase, table=True):
     id: UUID = Field(default_factory=uuid.uuid4,
                      primary_key=True, nullable=False)
     hashed_password: str = Field(nullable=True)
     is_active: bool = Field(default=True, nullable=False)
-   
+    role: UserRoleEnum = Field(default=UserRoleEnum.user, nullable=False)
+
 
 class UserLogin(BaseModel):
     email: EmailStr

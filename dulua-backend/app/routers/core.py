@@ -1,10 +1,10 @@
 from uuid import uuid4, UUID
-from pydantic import Field,EmailStr
+from pydantic import Field, EmailStr
 from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
 from sqlmodel import Session, select
 import os
-from app.models.core_models import City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic,LocalGuide, verifyRequest
+from app.models.core_models import City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic, LocalGuide, verifyRequest
 from pathlib import Path
 import shutil
 from fastapi import Request
@@ -17,9 +17,6 @@ UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 UPLOAD_localguide = Path("uploads/localguide")
 UPLOAD_localguide.mkdir(exist_ok=True, parents=True)
-
-
-
 
 
 @router.post("/add_geo_location")
@@ -81,37 +78,34 @@ async def get_place(place_id: UUID, session: Session = Depends(get_session)):
     return place_result
 
 
-
 @router.post("/local-guide")
 async def add_local_guide(
-    id_image1:UploadFile=File(...),
-    id_image2: UploadFile = File(...),
-    name: str = Form(...),
-    age: int = Form(...),
-    address: str = Form(...),
-    contact:int=Form(...),
-    email: EmailStr = Form(...),
-    bio: str = Form(...),
-    language:str=Form(...),
-    session: Session = Depends(get_session)):
-    
+        id_image1: UploadFile = File(...),
+        id_image2: UploadFile = File(...),
+        name: str = Form(...),
+        age: int = Form(...),
+        address: str = Form(...),
+        contact: int = Form(...),
+        email: EmailStr = Form(...),
+        bio: str = Form(...),
+        language: str = Form(...),
+        session: Session = Depends(get_session)):
+
     check = session.exec(select(LocalGuide).where(
         LocalGuide.email == email)).first()
     if check:
-        raise HTTPException(status_code=409, detail=f"Local guide with email={email} already exist")
+        raise HTTPException(
+            status_code=409, detail=f"Local guide with email={email} already exist")
 
-    
-    
     try:
         ext1 = os.path.splitext(id_image1.filename)[1]
         filename1 = f"{uuid4()}{ext1}"
-        
 
-        filepath1 = os.path.join(UPLOAD_localguide,filename1 )
+        filepath1 = os.path.join(UPLOAD_localguide, filename1)
         with open(filepath1, "wb") as f1:
             content1 = await id_image1.read()
             f1.write(content1)
-        
+
         ext2 = os.path.splitext(id_image2.filename)[1]
         filename2 = f"{uuid4()}{ext2}"
         filepath2 = os.path.join(UPLOAD_localguide, filename2)
@@ -119,7 +113,8 @@ async def add_local_guide(
             content2 = await id_image2.read()
             f2.write(content2)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save images: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save images: {e}")
 
     # Create model instance from form fields
     guide = LocalGuide(
@@ -140,16 +135,18 @@ async def add_local_guide(
 
     return {"message": "Local guide added", "guide": guide.dict()}
 
+
 @router.get("/verifyLocalGuide")
-async def verifyLocalGuide(data:verifyRequest,session:Session=Depends(get_session)):
-    user=session.exec(select(LocalGuide).where(LocalGuide.guide_id==data.id)).first()
+async def verifyLocalGuide(data: verifyRequest, session: Session = Depends(get_session)):
+    user = session.exec(select(LocalGuide).where(
+        LocalGuide.guide_id == data.id)).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    user.is_verified=True
+    user.is_verified = True
     session.add(user)
     session.commit()
-    return{"message":"User verified as LocalGuide"}
-    
+    return {"message": "User verified as LocalGuide"}
+
 
 @router.post("/add_review")
 async def add_review(
@@ -197,7 +194,6 @@ async def add_review(
         session.add(img_data)
 
     session.commit()
-
 
 
 @router.get("/get_reviews/{place_id}", response_model=list[ReviewPublic])
