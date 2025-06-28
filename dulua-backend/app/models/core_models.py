@@ -1,9 +1,11 @@
 
+from enum import Enum
 from re import L
 from typing import List, Optional
 
 
 from fastapi import UploadFile
+from matplotlib import category
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import null
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine
@@ -18,13 +20,49 @@ class GeolocationCreate(BaseModel):
     description: str
 
 
+class CategoryEnum(str, Enum):
+    must_visit = "must_visit"
+    panaroma = "panaroma"
+    hike = "hike"
+    camp = "camp"
+    remote = "remote"
+    gem = "gem"
+    adventure = "adventure"
+    food = "food"
+    shop = "shop"
+    sightseeing = "sightseeing"
+    culture = "culture"
+    art = "art"
+    history = "history"
+    nature = "nature"
+    sport = "sport"
+    religion = "religion"
+    education = "education"
+    health = "health"
+    entertainment = "entertainment"
+    transportation = "transportation"
+    other = "other"
+
+
 class PublicCity(GeolocationCreate):
     city_id: UUID
+
+
+class CategoryRead(BaseModel):
+    id: UUID
+    name: CategoryEnum
+
+    class Config:
+        from_attributes = True
 
 
 class PublicPlace(GeolocationCreate):
     city_id: UUID
     city_name: str
+    category: List[CategoryRead]
+    featured: bool
+    featured_image_main: str
+    featured_image_secondary:  Optional[str] = None
 
 
 class City(SQLModel, table=True):
@@ -39,6 +77,13 @@ class City(SQLModel, table=True):
     places: list["Place"] = Relationship(back_populates="city")
 
 
+class PlaceCategoryLink(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid.uuid4,
+                     primary_key=True, nullable=False)
+    place_id: UUID = Field(foreign_key="place.place_id", nullable=False)
+    category_id: UUID = Field(foreign_key="category.id", nullable=False)
+
+
 class Place(SQLModel, table=True):
     place_id: UUID = Field(default_factory=uuid.uuid4,
                            primary_key=True, nullable=False)
@@ -50,6 +95,24 @@ class Place(SQLModel, table=True):
     geo_location: Optional["Geolocation"] = Relationship(
         sa_relationship_kwargs={"uselist": False})
     reviews: list["Review"] = Relationship(back_populates="place")
+    categories: List["Category"] = Relationship(back_populates="places",
+                                                link_model=PlaceCategoryLink)
+    featured: bool = Field(default=False, nullable=False)
+    featured_image_main: str = Field(nullable=False)
+    featured_image_secondary: str = Field(nullable=True)
+
+
+# cateogry place, m-m relationship
+class Category(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid.uuid4,
+                     primary_key=True, nullable=False)
+    name: CategoryEnum = Field(index=True, nullable=False)
+    places: list["Place"] = Relationship(back_populates="categories",
+                                         link_model=PlaceCategoryLink)
+
+
+class CategoryCreate(BaseModel):
+    name: CategoryEnum
 
 
 class Geolocation(SQLModel, table=True):
@@ -59,6 +122,14 @@ class Geolocation(SQLModel, table=True):
     latitude: float = Field(index=True, nullable=False)
     longitude: float = Field(index=True, nullable=False)
     description: str = Field(index=True, nullable=False)
+
+
+class PlaceAdd(GeolocationCreate):
+    city_id: UUID
+    category: List[CategoryEnum]
+    featured: Optional[bool] = False
+    featured_image_main: str
+    featured_image_secondary: Optional[str] = None
 
 
 class LocalGuide(SQLModel, table=True):
