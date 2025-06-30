@@ -1,13 +1,16 @@
 from uuid import uuid4, UUID
 from pydantic import Field, EmailStr
+from sympy import use
 from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
 from sqlmodel import Session, select
 import os
 from app.models.core_models import City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic, LocalGuide, verifyRequest
+from app.auth.models import UserDB
 from pathlib import Path
 import shutil
 from fastapi import Request
+from ..dependencies import get_email_from_token, get_role_from_token,get_userID_from_token
 
 router = APIRouter()
 
@@ -80,6 +83,7 @@ async def get_place(place_id: UUID, session: Session = Depends(get_session)):
 
 @router.post("/local-guide")
 async def add_local_guide(
+        request:Request,
         id_image1: UploadFile = File(...),
         id_image2: UploadFile = File(...),
         name: str = Form(...),
@@ -87,9 +91,12 @@ async def add_local_guide(
         address: str = Form(...),
         contact: int = Form(...),
         email: EmailStr = Form(...),
-        bio: str = Form(...),
-        language: str = Form(...),
         session: Session = Depends(get_session)):
+    
+    checkEmail=get_email_from_token(request)
+    if checkEmail!=email:
+     raise HTTPException(
+            status_code=403, detail=f"Curent User Email doesnot match entered email")
 
     check = session.exec(select(LocalGuide).where(
         LocalGuide.email == email)).first()
@@ -125,8 +132,8 @@ async def add_local_guide(
         address=address,
         contact=contact,
         email=email,
-        bio=bio,
-        language=language
+        user_id=UUID(get_userID_from_token(request))
+        
     )
 
     session.add(guide)
@@ -136,17 +143,48 @@ async def add_local_guide(
     return {"message": "Local guide added", "guide": guide.dict()}
 
 
-@router.get("/verifyLocalGuide")
-async def verifyLocalGuide(data: verifyRequest, session: Session = Depends(get_session)):
-    user = session.exec(select(LocalGuide).where(
-        LocalGuide.guide_id == data.id)).first()
+@router.get("/verifyLocalGuide/{id}")
+async def verifyLocalGuide(id:UUID,request:Request, session: Session = Depends(get_session)):
+    role=get_role_from_token(request)
+    if role!="admin":
+        raise HTTPException(status_code=403, detail="Only admin can verify localguide")
+    user=session.exec(select(UserDB).where(UserDB.id==id)).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.is_verified = True
+           raise HTTPException(status_code=404, detail="User not found")
+    user.role="guide"
     session.add(user)
     session.commit()
-    return {"message": "User verified as LocalGuide"}
+    return{"Message":"Guide Verified"}
+        
+    
+    
+    
+   
 
+
+@router.post("/getLocalGuide/{guide_id}")
+async def getLocalGuide(guide_id: UUID, session: Session = Depends(get_session)):
+    guide = session.exec(select(LocalGuide).where(LocalGuide.guide_id == guide_id)).first()
+    print(guide_id)
+    print(guide)
+    if not guide:
+        raise HTTPException(status_code=404, detail="Guide not found")
+    return {"Guide Data":guide}
+
+
+@router.delete("deleteLocalGuide/{guide_id}")
+async def deleteLocalGuide(guide_id:UUID,request:Request,session:Session=Depends(get_session)):
+    role=get_role_from_token(request)
+    if role!="admin":
+        raise HTTPException(status_code=403, detail="Only admin can delete users")
+    user=session.exec(select(LocalGuide).where(LocalGuide.guide_id==guide_id)).first()
+    if not user:
+         raise HTTPException(status_code=404, detail="User not found")
+    session.delete(user)
+    session.commit()
+    return{"message":f"LocalGuide with id:{guide_id} deleted "}
+        
+    
 
 @router.post("/add_review")
 async def add_review(
