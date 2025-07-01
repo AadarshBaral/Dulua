@@ -1,7 +1,7 @@
 import Image from "next/image"
 import React from "react"
 
-const NearbyCarousel = () => {
+const Page = () => {
     return (
         <div className="relative p-4 mx-20 ">
             {/* Header */}
@@ -43,4 +43,4 @@ const NearbyCarousel = () => {
     )
 }
 
-export default NearbyCarousel
+export default Page

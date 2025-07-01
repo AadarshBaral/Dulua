@@ -111,8 +111,9 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRATION_MINUTES)
     print(access_token_expires)
     print(user)
+    userid=str(user.id)
     access_token = create_access_token(
-        data={"sub": user.name}, expires_delta=access_token_expires
+        data={"sub": user.name,"email":user.email,"role": user.role,"userId":userid}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
 
@@ -131,7 +132,7 @@ async def read_users_me(
 
 @router.post("/register")
 def register(user_in: UserCreate, session: Session = Depends(get_session)):
-
+    print("Attempting to register user")
     statement_user = select(UserDB).where(UserDB.email == user_in.email)
     existing_user = session.exec(statement_user).first()
 
@@ -143,6 +144,7 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
         raise HTTPException(status_code=400, detail="User already exists")
 
     if existing_pending:
+        print("Attempting to delete existing pending registration")
         session.delete(existing_pending)
         session.commit()
 

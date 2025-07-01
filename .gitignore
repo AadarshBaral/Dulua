@@ -14,7 +14,6 @@ dulua-backend/dulua-env/
 dulua-backend/env/
 dulua-backend/.env
 dulua-backend/*.pyc
-dulua-backend/.mypy_cache/
 dulua-backend/.pytest_cache/
 dulua-backend/.DS_Store
 
@@ -26,7 +25,10 @@ dulua-backend/.DS_Store
 *.swp
 .DS_Store
 .env
+.bat
 
 
 #vs
 .vscode/
+
+venv/

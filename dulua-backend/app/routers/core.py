@@ -1,27 +1,27 @@
 import os
-
+import uuid
 from sqlmodel import select, Session
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.staticfiles import StaticFiles
-from uuid import UUID
-import uuid
-
+from uuid import uuid4, UUID
+from pydantic import Field, EmailStr
+from sympy import use
+from app.auth.models import UserDB
 from pydantic import BaseModel
-
-
 from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
-from typing import Annotated, List
-from app.models.core_models import Category, CategoryCreate, CategoryEnum, CategoryRead, City, Geolocation, GeolocationCreate, ImageData, Place, PlaceAdd, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic
+import os
+from app.models.core_models import Category, CategoryCreate, CategoryEnum, CategoryRead, City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic, LocalGuide, verifyRequest
 from pathlib import Path
 import shutil
 from fastapi import Request
+from ..dependencies import get_email_from_token, get_role_from_token, get_userID_from_token
 router = APIRouter()
-
-
 UPLOAD_DIR = Path("uploads/reviews")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
+
+UPLOAD_localguide = Path("uploads/localguide")
+UPLOAD_localguide.mkdir(exist_ok=True, parents=True)
 PLACE_UPLOAD_DIR = Path("uploads/places")
 PLACE_UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
@@ -192,6 +192,109 @@ async def get_place(request: Request, place_id: UUID, session: Session = Depends
     return place_result
 
 
+@router.post("/local-guide")
+async def add_local_guide(
+        request: Request,
+        id_image1: UploadFile = File(...),
+        id_image2: UploadFile = File(...),
+        name: str = Form(...),
+        age: int = Form(...),
+        address: str = Form(...),
+        contact: int = Form(...),
+        email: EmailStr = Form(...),
+        session: Session = Depends(get_session)):
+
+    checkEmail = get_email_from_token(request)
+    if checkEmail != email:
+        raise HTTPException(
+            status_code=403, detail=f"Curent User Email doesnot match entered email")
+
+    check = session.exec(select(LocalGuide).where(
+        LocalGuide.email == email)).first()
+    if check:
+        raise HTTPException(
+            status_code=409, detail=f"Local guide with email={email} already exist")
+
+    try:
+        ext1 = os.path.splitext(id_image1.filename)[1]
+        filename1 = f"{uuid4()}{ext1}"
+
+        filepath1 = os.path.join(UPLOAD_localguide, filename1)
+        with open(filepath1, "wb") as f1:
+            content1 = await id_image1.read()
+            f1.write(content1)
+
+        ext2 = os.path.splitext(id_image2.filename)[1]
+        filename2 = f"{uuid4()}{ext2}"
+        filepath2 = os.path.join(UPLOAD_localguide, filename2)
+        with open(filepath2, "wb") as f2:
+            content2 = await id_image2.read()
+            f2.write(content2)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save images: {e}")
+
+    # Create model instance from form fields
+    guide = LocalGuide(
+        id_image1=filepath1,
+        id_image2=filepath2,
+        name=name,
+        age=age,
+        address=address,
+        contact=contact,
+        email=email,
+        user_id=UUID(get_userID_from_token(request))
+
+    )
+
+    session.add(guide)
+    session.commit()
+    session.refresh(guide)
+
+    return {"message": "Local guide added", "guide": guide.dict()}
+
+
+@router.get("/verifyLocalGuide/{id}")
+async def verifyLocalGuide(id: UUID, request: Request, session: Session = Depends(get_session)):
+    role = get_role_from_token(request)
+    if role != "admin":
+        raise HTTPException(
+            status_code=403, detail="Only admin can verify localguide")
+    user = session.exec(select(UserDB).where(UserDB.id == id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.role = "guide"
+    session.add(user)
+    session.commit()
+    return {"Message": "Guide Verified"}
+
+
+@router.post("/getLocalGuide/{guide_id}")
+async def getLocalGuide(guide_id: UUID, session: Session = Depends(get_session)):
+    guide = session.exec(select(LocalGuide).where(
+        LocalGuide.guide_id == guide_id)).first()
+    print(guide_id)
+    print(guide)
+    if not guide:
+        raise HTTPException(status_code=404, detail="Guide not found")
+    return {"Guide Data": guide}
+
+
+@router.delete("deleteLocalGuide/{guide_id}")
+async def deleteLocalGuide(guide_id: UUID, request: Request, session: Session = Depends(get_session)):
+    role = get_role_from_token(request)
+    if role != "admin":
+        raise HTTPException(
+            status_code=403, detail="Only admin can delete users")
+    user = session.exec(select(LocalGuide).where(
+        LocalGuide.guide_id == guide_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    session.delete(user)
+    session.commit()
+    return {"message": f"LocalGuide with id:{guide_id} deleted "}
+
+
 @router.post("/add_review")
 async def add_review(
     place_id: str = Form(...),
@@ -199,7 +302,7 @@ async def add_review(
     rating: int = Form(...),
     comment: str = Form(...),
     timestamp: str = Form(...),
-    images: List[UploadFile] = File([]),
+    images: list[UploadFile] = File([]),
     session: Session = Depends(get_session)
 ):
 
@@ -227,7 +330,7 @@ async def add_review(
         if ext not in ["jpg", "jpeg", "png"]:
             raise HTTPException(status_code=400, detail="Invalid image format")
 
-        new_filename = f"{uuid.uuid4()}.{ext}"
+        new_filename = f"{UUID.uuid4()}.{ext}"
         file_path = UPLOAD_DIR / new_filename
 
         with file_path.open("wb") as buffer:
@@ -239,10 +342,8 @@ async def add_review(
 
     session.commit()
 
-    return {"message": "Review added", "review_id": review.review_id}
 
-
-@router.get("/get_reviews/{place_id}", response_model=List[ReviewPublic])
+@router.get("/get_reviews/{place_id}", response_model=list[ReviewPublic])
 async def get_review(request: Request, place_id: UUID, session: Session = Depends(get_session)):
     baseurl = str(request.base_url).rstrip("/")
     review = session.exec(select(Review).where(Review.place_id == place_id))

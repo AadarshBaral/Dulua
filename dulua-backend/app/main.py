@@ -1,8 +1,9 @@
-
+from .auth import models
+from .routers import core
 from fastapi.staticfiles import StaticFiles
 from app.session import get_session, create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
-import time
+import os
 
 from fastapi import Depends, FastAPI, Request, middleware
 from .dependencies import get_token_header
@@ -10,6 +11,10 @@ from .routers import detect_trash, core
 from .lib.tags import tags_metadata
 from .auth import auth
 app = FastAPI(openapi_tags=tags_metadata)
+
+
+UPLOAD_DIR = "uploaded_images"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 origins = [
     "http://localhost",
@@ -37,10 +42,10 @@ app.add_middleware(
 )
 
 
-app.include_router(detect_trash.router, prefix='/detect_trash')
 app.include_router(auth.router, prefix="/auth",
                    )
 app.include_router(core.router, prefix="/city")
+app.include_router(core.router)
 
 
 @app.get("/")
