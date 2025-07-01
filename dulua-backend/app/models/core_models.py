@@ -1,13 +1,18 @@
 
 from enum import Enum
 from re import L
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from matplotlib import category
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import null
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine
 import uuid
 from uuid import UUID
+from app.auth.models import UserDB
+
+
+if TYPE_CHECKING:
+    from app.auth.models import UserDB
 
 
 class GeolocationCreate(BaseModel):
@@ -132,6 +137,7 @@ class PlaceAdd(GeolocationCreate):
 class LocalGuide(SQLModel, table=True):
     guide_id: UUID = Field(default_factory=uuid.uuid4,
                            primary_key=True, nullable=False)
+    user_id: UUID = Field(foreign_key="userdb.id", nullable=False)
     id_image1: str = Field(index=True, nullable=False)
     id_image2: str = Field(index=True, nullable=False)
     name: str = Field(index=True, nullable=False)
@@ -139,8 +145,15 @@ class LocalGuide(SQLModel, table=True):
     address: str = Field(index=True, nullable=False)
     contact: int = Field(index=True, nullable=False)
     email: EmailStr = Field(index=True, nullable=False)
+
+    user: "UserDB" = Relationship(back_populates="local_guides")
+
     bio: str = Field(index=True, nullable=False)
     language: str = Field(index=True, nullable=False)
+
+
+class verifyRequest(BaseModel):
+    id: UUID
 
 
 class Review(SQLModel, table=True):
