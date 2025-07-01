@@ -96,12 +96,6 @@ async def get_current_active_user(
     return current_user
 
 
-# def get_user(db, username: str):
-#     if username in db:
-#         user_dict = db[username]
-#         return UserInDB(**user_dict)
-
-
 @router.post("/token")
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session=Depends(get_session)) -> Token:
 
