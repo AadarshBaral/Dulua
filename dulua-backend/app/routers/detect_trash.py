@@ -2,7 +2,7 @@ from fastapi import UploadFile, File, APIRouter
 from typing import Annotated
 import numpy as np
 import cv2
-from ultralytics import YOLO
+from ultralytics import YOLO  # type: ignore
 import os
 
 router = APIRouter()

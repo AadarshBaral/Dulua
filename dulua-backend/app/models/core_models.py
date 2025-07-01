@@ -5,7 +5,7 @@ from typing import List, Optional, TYPE_CHECKING
 from matplotlib import category
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import null
-from sqlmodel import Field, Relationship, Session, SQLModel, create_engine
+from sqlmodel import Field, Relationship, Session, SQLModel, create_engine  # type: ignore
 import uuid
 from uuid import UUID
 from app.auth.models import UserDB

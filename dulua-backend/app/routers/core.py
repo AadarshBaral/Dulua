@@ -1,6 +1,6 @@
 import os
 import uuid
-from sqlmodel import select, Session
+from sqlmodel import select, Session  # type: ignore
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from uuid import uuid4, UUID
