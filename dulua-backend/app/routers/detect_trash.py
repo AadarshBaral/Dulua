@@ -12,6 +12,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, "best.pt")
 model = YOLO(model_path)
 
+# check
+
 
 @router.post("/", tags=["detect_trash"])
 async def detect_trash(image: Annotated[UploadFile, File(description="Input image for detection")]):
