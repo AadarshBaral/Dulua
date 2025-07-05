@@ -1,8 +1,6 @@
-from operator import inv
 from fastapi import Header, HTTPException, Request
 import jwt
 from typing_extensions import Annotated
-from PIL import Image
 
 from .config import settings
 
@@ -35,7 +33,7 @@ async def get_query_token(token: str):
 
 def get_role_from_token(request: Request):
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    if not auth_header or not auth_header.startswith("bearer "):
         raise HTTPException(status_code=401, detail="Invalid auth header")
 
     token = auth_header.split(" ")[1]
@@ -52,7 +50,7 @@ def get_role_from_token(request: Request):
 
 def get_email_from_token(request: Request):
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    if not auth_header or not auth_header.startswith("bearer "):
         raise HTTPException(status_code=401, detail="Invalid auth header")
 
     token = auth_header.split(" ")[1]
@@ -69,7 +67,7 @@ def get_email_from_token(request: Request):
 
 def get_userID_from_token(request: Request):
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    if not auth_header or not auth_header.startswith("bearer "):
         raise HTTPException(status_code=401, detail="Invalid auth header")
 
     token = auth_header.split(" ")[1]
