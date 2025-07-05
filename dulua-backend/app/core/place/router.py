@@ -1,56 +1,21 @@
-import os
 import uuid
 from sqlmodel import select, Session  # type: ignore
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from uuid import uuid4, UUID
-from pydantic import Field, EmailStr
-from sympy import use
-from app.auth.models import UserDB
-from pydantic import BaseModel
+from uuid import UUID
 from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
-import os
-from app.models.core_models import Category, CategoryCreate, CategoryEnum, CategoryRead, City, Geolocation, GeolocationCreate, ImageData, Place, PublicCity, PublicPlace, Review, ReviewCreate, ReviewPublic, LocalGuide, verifyRequest
+from .models import Category, Geolocation, ImageData, Place,  Review
+from .schema import CategoryCreate, CategoryEnum, CategoryRead, PublicPlace, ReviewPublic
+from app.core.city.models import City, Geolocation
 from pathlib import Path
 import shutil
 from fastapi import Request
-from ..dependencies import get_email_from_token, get_role_from_token, get_userID_from_token
 router = APIRouter()
 UPLOAD_DIR = Path("uploads/reviews")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
-
-UPLOAD_localguide = Path("uploads/localguide")
-UPLOAD_localguide.mkdir(exist_ok=True, parents=True)
 PLACE_UPLOAD_DIR = Path("uploads/places")
 PLACE_UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
-
-
-@router.post("/add_geo_location")
-async def add_city(geo_location: Geolocation, session: Session = Depends(get_session)):
-    session.add(geo_location)
-    session.commit()
-    return {"message": "Geo Location added", "geo_location": geo_location.dict()}
-
-
-@router.post("/add_city")
-async def add_city(city: GeolocationCreate, session: Session = Depends(get_session)):
-    geo_location = Geolocation(name=city.name, latitude=city.latitude,
-                               longitude=city.longitude, description=city.description)
-    # TODO: need to check with lat,lng threshold whether another geolocation can be added. Cannot add if threshold limit matches
-    existing = session.query(Geolocation).filter(
-        Geolocation.latitude == geo_location.latitude and Geolocation.longitude == geo_location.longitude).first()
-    if existing:
-        raise HTTPException(
-            status_code=400, detail="Geolocation already exists")
-
-    session.add(geo_location)
-    session.commit()
-    city = City(geo_location_id=geo_location.geo_location_id,
-                name=city.name)
-    session.add(city)
-    session.commit()
-    return {"message": "Geolocation added", "geo_location": geo_location.dict()}
 
 
 @router.post("/add_place")
@@ -66,7 +31,6 @@ async def add_place(
     featured_image_secondary: Optional[UploadFile] = File(None),
     session: Session = Depends(get_session)
 ):
-    # ✅ Step 1: Save images
     def save_image(image: UploadFile) -> str:
         if not image.content_type.startswith("image/"):
             raise HTTPException(
@@ -82,13 +46,12 @@ async def add_place(
         with filepath.open("wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
 
-        return new_filename  # store only the filename, not full path
+        return new_filename
 
     main_image_filename = save_image(featured_image_main)
     secondary_image_filename = save_image(
         featured_image_secondary) if featured_image_secondary else None
 
-    # ✅ Step 2: Create Geolocation
     geo_location = Geolocation(
         name=name,
         latitude=latitude,
@@ -99,7 +62,6 @@ async def add_place(
     session.commit()
     session.refresh(geo_location)
 
-    # ✅ Step 3: Fetch existing categories
     existing_categories = session.exec(
         select(Category).where(Category.name.in_(category))
     ).all()
@@ -141,29 +103,6 @@ async def add_category(category: CategoryCreate, session: Session = Depends(get_
     return {"message": "Category added", "category": category.dict()}
 
 
-@router.get("/all_cities")
-def all_cities(session: Session = Depends(get_session)):
-    city = session.exec(select(City)).first()
-    geo_location = session.exec(select(Geolocation).where(
-        Geolocation.geo_location_id == city.geo_location_id)).first()
-
-    return {"city_id": city.city_id, "name": geo_location.name}
-
-
-@router.get("/get_city/{city_id}", response_model=PublicCity)
-async def get_city(city_id: UUID, session: Session = Depends(get_session)):
-    city = session.exec(select(City).where(City.city_id == city_id)).first()
-    if not city:
-        raise HTTPException(status_code=400, detail="City not found")
-    geo_location = session.exec(select(Geolocation).where(
-        Geolocation.geo_location_id == city.geo_location_id)).first()
-
-    city_result = PublicCity(city_id=city.city_id, name=geo_location.name, latitude=geo_location.latitude,
-                             longitude=geo_location.longitude, description=geo_location.description)
-
-    return city_result
-
-
 @router.get("/get_place/{place_id}", response_model=PublicPlace)
 async def get_place(request: Request, place_id: UUID, session: Session = Depends(get_session)):
     baseurl = str(request.base_url).rstrip("/")
@@ -190,109 +129,6 @@ async def get_place(request: Request, place_id: UUID, session: Session = Depends
 
     )
     return place_result
-
-
-@router.post("/local-guide")
-async def add_local_guide(
-        request: Request,
-        id_image1: UploadFile = File(...),
-        id_image2: UploadFile = File(...),
-        name: str = Form(...),
-        age: int = Form(...),
-        address: str = Form(...),
-        contact: int = Form(...),
-        email: EmailStr = Form(...),
-        session: Session = Depends(get_session)):
-
-    checkEmail = get_email_from_token(request)
-    if checkEmail != email:
-        raise HTTPException(
-            status_code=403, detail=f"Curent User Email doesnot match entered email")
-
-    check = session.exec(select(LocalGuide).where(
-        LocalGuide.email == email)).first()
-    if check:
-        raise HTTPException(
-            status_code=409, detail=f"Local guide with email={email} already exist")
-
-    try:
-        ext1 = os.path.splitext(id_image1.filename)[1]
-        filename1 = f"{uuid4()}{ext1}"
-
-        filepath1 = os.path.join(UPLOAD_localguide, filename1)
-        with open(filepath1, "wb") as f1:
-            content1 = await id_image1.read()
-            f1.write(content1)
-
-        ext2 = os.path.splitext(id_image2.filename)[1]
-        filename2 = f"{uuid4()}{ext2}"
-        filepath2 = os.path.join(UPLOAD_localguide, filename2)
-        with open(filepath2, "wb") as f2:
-            content2 = await id_image2.read()
-            f2.write(content2)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to save images: {e}")
-
-    # Create model instance from form fields
-    guide = LocalGuide(
-        id_image1=filepath1,
-        id_image2=filepath2,
-        name=name,
-        age=age,
-        address=address,
-        contact=contact,
-        email=email,
-        user_id=UUID(get_userID_from_token(request))
-
-    )
-
-    session.add(guide)
-    session.commit()
-    session.refresh(guide)
-
-    return {"message": "Local guide added", "guide": guide.dict()}
-
-
-@router.get("/verifyLocalGuide/{id}")
-async def verifyLocalGuide(id: UUID, request: Request, session: Session = Depends(get_session)):
-    role = get_role_from_token(request)
-    if role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only admin can verify localguide")
-    user = session.exec(select(UserDB).where(UserDB.id == id)).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.role = "guide"
-    session.add(user)
-    session.commit()
-    return {"Message": "Guide Verified"}
-
-
-@router.post("/getLocalGuide/{guide_id}")
-async def getLocalGuide(guide_id: UUID, session: Session = Depends(get_session)):
-    guide = session.exec(select(LocalGuide).where(
-        LocalGuide.guide_id == guide_id)).first()
-    print(guide_id)
-    print(guide)
-    if not guide:
-        raise HTTPException(status_code=404, detail="Guide not found")
-    return {"Guide Data": guide}
-
-
-@router.delete("deleteLocalGuide/{guide_id}")
-async def deleteLocalGuide(guide_id: UUID, request: Request, session: Session = Depends(get_session)):
-    role = get_role_from_token(request)
-    if role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only admin can delete users")
-    user = session.exec(select(LocalGuide).where(
-        LocalGuide.guide_id == guide_id)).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    session.delete(user)
-    session.commit()
-    return {"message": f"LocalGuide with id:{guide_id} deleted "}
 
 
 @router.post("/add_review")

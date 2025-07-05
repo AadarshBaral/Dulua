@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel, create_engine, Session  # type: ignore
 from app.config import settings
 
 connect_args = {"check_same_thread": False}

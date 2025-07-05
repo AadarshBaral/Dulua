@@ -1,20 +1,14 @@
-from .auth import models
-from .routers import core
 from fastapi.staticfiles import StaticFiles
-from app.session import get_session, create_db_and_tables
+from app.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
-import os
-
-from fastapi import Depends, FastAPI, Request, middleware
-from .dependencies import get_token_header
-from .routers import detect_trash, core
+from fastapi import FastAPI
 from .lib.tags import tags_metadata
 from .auth import auth
+from .core.trash_detection import router as detect_trash
+from app.core.city import router as city_router
+from app.core.place import router as place_router
+from app.core.local_guide import router as local_guide_router
 app = FastAPI(openapi_tags=tags_metadata)
-
-
-UPLOAD_DIR = "uploaded_images"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 origins = [
     "http://localhost",
@@ -33,6 +27,7 @@ app.mount("/city/images/reviews",
 app.mount("/city/images/places",
           StaticFiles(directory="uploads/places"), name="places")
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -42,10 +37,12 @@ app.add_middleware(
 )
 
 
-app.include_router(auth.router, prefix="/auth",
-                   )
-app.include_router(core.router, prefix="/city")
-app.include_router(core.router)
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(detect_trash.router, prefix="/detect_trash")
+app.include_router(city_router.router, prefix="/city", tags=["City"])
+app.include_router(place_router.router, prefix="/place", tags=["Place"])
+app.include_router(local_guide_router.router,
+                   prefix="/local_guide", tags=["Local Guide"])
 
 
 @app.get("/")

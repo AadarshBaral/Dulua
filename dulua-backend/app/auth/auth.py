@@ -1,34 +1,23 @@
 import random
-from urllib import response
-
-from sqlmodel import Field, Session, SQLModel, create_engine, select
-from .models import PendingRegistration, UserCreate, UserDB, UserLogin, UserPublic, VerifyOtp
+from sqlmodel import Session, select  # type: ignore
+from .models import PendingRegistration,  UserDB
 from datetime import datetime, timedelta, timezone
-from os import access
-import time
 from ..lib.send_email import send_email
-from fastapi import Body, FastAPI, Request, UploadFile, File, APIRouter, dependencies, Depends, HTTPException, middleware, status
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
 import jwt
-from pydantic import BaseModel, Field, EmailStr
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from app.session import get_session
 from app.config import settings
+from .schema import Token, TokenData, UserCreate, VerifyOtp
 router = APIRouter()
 app = FastAPI()
+
+
 SECRET_KEY = settings.APP_SECRET
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRATION_MINUTES = 30
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -111,16 +100,12 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRATION_MINUTES)
     print(access_token_expires)
     print(user)
-    userid=str(user.id)
+    userid = str(user.id)
     access_token = create_access_token(
-        data={"sub": user.name,"email":user.email,"role": user.role,"userId":userid}, expires_delta=access_token_expires
+        data={"sub": user.name, "email": user.email, "role": user.role, "userId": userid}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
 
-
-# @router.get("/users/me")
-# async def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
-#     return current_user
 
 @router.get("/get-user")
 async def read_users_me(
