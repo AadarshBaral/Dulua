@@ -7,7 +7,7 @@ from uuid import UUID
 
 
 if TYPE_CHECKING:
-    from app.models.core_models import Place
+    from app.core.place.models import Place
 
 
 class City(SQLModel, table=True):
