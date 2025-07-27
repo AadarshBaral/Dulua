@@ -1,11 +1,21 @@
 "use client"
 
+import { useState } from "react"
+import { Map as LeafletMap, LatLng } from "leaflet"
 import { Place } from "@lib/types"
 import { ILocation } from "@hooks/useCurrentLocation"
+
+export interface Step {
+    instruction?: string
+    latLng?: LatLng
+    distance?: number
+}
 
 interface Props {
     place: Place
     location: ILocation
+    directions: Step[]
+    map: LeafletMap | null
     onClose: () => void
     onGetDirections: () => void
 }
@@ -13,12 +23,16 @@ interface Props {
 export default function Sidebar({
     place,
     location,
+    directions = [],
+    map,
     onClose,
     onGetDirections,
 }: Props) {
+    const [activeTab, setActiveTab] = useState<"about" | "reviews">("about")
+
     const calculateDistance = () => {
         const toRad = (deg: number) => (deg * Math.PI) / 180
-        const R = 6371 // Radius of the Earth in km
+        const R = 6371
         const dLat = toRad(place.lat - location.latitude)
         const dLng = toRad(place.lng - location.longitude)
         const a =
@@ -31,7 +45,8 @@ export default function Sidebar({
     }
 
     return (
-        <div className="absolute top-0 left-0 h-full w-[360px] bg-white shadow-lg z-[1000] overflow-auto rounded-l-2xl">
+        <div className="absolute top-4 left-4 h-[95vh] w-[360px] bg-white rounded-2xl shadow-2xl z-[1000] overflow-hidden flex flex-col border border-gray-200">
+            {/* Header Image */}
             <div className="relative">
                 <img
                     src="/default.png"
@@ -40,69 +55,74 @@ export default function Sidebar({
                 />
                 <button
                     onClick={onClose}
-                    className="absolute top-2 right-2 text-white bg-black bg-opacity-40 px-2 py-1 rounded"
+                    className="absolute top-3 right-3 text-black bg-white bg-opacity-70 hover:bg-opacity-90 px-2 py-1 rounded-full shadow-sm"
                 >
                     ✕
                 </button>
             </div>
-            <div className="p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">
-                        {place.name || "Tranquil Haven Retreat"}
-                    </h2>
-                    <div className="text-blue-600 font-semibold flex items-center gap-1">
-                        <span>4.9</span>
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                            className="w-4 h-4"
-                        >
-                            <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                        </svg>
+
+            {/* Info + Tabs */}
+            <div className="bg-white px-5 pt-4 pb-3 space-y-2">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">{place.name}</h2>
+                    <div className="text-green-700 font-bold flex items-center gap-1">
+                        <span>4.9</span> ⭐
                     </div>
                 </div>
                 <p className="text-sm text-gray-600">
-                    Hosted by <span className="font-medium">Adam fort</span>
+                    Escape to this serene home nestled amidst nature...
                 </p>
-                <p className="text-md text-black font-semibold">
-                    124TND Per Night
-                </p>
-                <p className="text-sm text-gray-500">
-                    Escape to this serene single-family home nestled amidst
-                    nature's embrace. With spacious interiors and panoramic
-                    views, Tranquil Haven Retreat offers a perfect blend of
-                    comfort and tranquility. Ideal for those seeking a peaceful
-                    lifestyle without compromising on modern amenities.
-                </p>
-                <div className="flex gap-2 mt-2">
-                    <img
-                        src="/default.png"
-                        alt="interior"
-                        className="w-24 h-20 object-cover rounded"
-                    />
-                    <img
-                        src="/default.png"
-                        alt="interior"
-                        className="w-24 h-20 object-cover rounded"
-                    />
-                    <img
-                        src="/default.png"
-                        alt="interior"
-                        className="w-24 h-20 object-cover rounded"
-                    />
-                </div>
+            </div>
 
-                <button
-                    onClick={onGetDirections}
-                    className="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg text-center text-sm font-medium hover:bg-blue-700 transition"
-                >
-                    Get Directions ({calculateDistance()} km)
-                </button>
+            {/* Tab Buttons */}
+            {/* Tab Buttons (Styled like image) */}
+            <div className="border-b border-gray-300 flex justify-start pl-4 gap-4">
+                {["about", "reviews"].map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab as "about" | "reviews")}
+                        className={`relative py-3 px-4 text-sm font-medium transition-colors duration-200 ${
+                            activeTab === tab
+                                ? "text-teal-700 border-b-2 border-teal-700"
+                                : "text-gray-500 hover:text-teal-700"
+                        }`}
+                    >
+                        {tab === "about" ? "About" : "Reviews"}
+                    </button>
+                ))}
+            </div>
 
-                <button className="w-full mt-2 bg-gray-100 text-gray-700 py-2 rounded-lg text-center text-sm font-medium hover:bg-gray-200 transition">
-                    Check availability
-                </button>
+            {/* Tab Content */}
+            <div className="p-5 overflow-y-auto flex-1 bg-white h-full">
+                {activeTab === "about" ? (
+                    <div className="space-y-3 relative h-full">
+                        Lorem ipsum dolor sit amet consectetur, adipisicing
+                        elit. Dolores ad quam dicta optio impedit, dolore enim
+                        repudiandae, officiis a ratione quis, delectus ducimus
+                        expedita. A exercitationem aut dolor mollitia quibusdam?
+                        <button
+                            onClick={onGetDirections}
+                            className="w-full py-2 left-0  absolute bottom-2 bg-[#A4F03B] text-black font-semibold rounded-lg hover:bg-[#91db27] transition"
+                        >
+                            Get Directions ({calculateDistance()} km)
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-3 text-sm text-gray-600">
+                        <p>
+                            <strong>Prem Kumari:</strong> Loved the view and
+                            location. Peaceful and clean. 🌿
+                        </p>
+                        <p>
+                            <strong>Ramesh:</strong> Great host and comfortable
+                            place. Will visit again.
+                        </p>
+                        <p>
+                            <strong>Sita:</strong> Best nature getaway in
+                            Pokhara!
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     )

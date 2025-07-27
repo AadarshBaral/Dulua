@@ -1,15 +1,8 @@
 "use client"
 
-import {
-    MapContainer,
-    TileLayer,
-    Marker,
-    Popup,
-    useMap,
-    Polyline,
-} from "react-leaflet"
-import { LatLngTuple } from "leaflet"
-import { useEffect, useRef, useState } from "react"
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import { LatLngTuple, Map as LeafletMap } from "leaflet"
+import { useEffect, useState } from "react"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet-routing-machine"
@@ -18,7 +11,6 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 
 import { Place } from "@lib/types"
 import { ILocation } from "@hooks/useCurrentLocation"
-import dynamic from "next/dynamic"
 import Sidebar from "./Sidebar"
 
 const MyLocationIcon = new L.Icon({
@@ -31,6 +23,12 @@ const PlaceIcon = new L.Icon({
     iconSize: [60, 60],
 })
 
+export type Step = {
+    instruction: string
+    latLng: L.LatLng
+    distance: number
+}
+
 export default function MapRenderer({
     mapData,
     location,
@@ -40,6 +38,8 @@ export default function MapRenderer({
 }) {
     const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
     const [route, setRoute] = useState<LatLngTuple[]>([])
+    const [directions, setDirections] = useState<Step[]>([])
+    const [mapInstance, setMapInstance] = useState<LeafletMap | null>(null)
 
     const handleGetDirections = (dest: Place) => {
         if (!location) return
@@ -50,17 +50,18 @@ export default function MapRenderer({
     }
 
     return (
-        <div className="relative w-[100vw] h-[100vh] !mx-0 border-4  ">
+        <div className="relative w-[100vw] h-[100vh]">
             <MapContainer
                 center={[28.2096, 83.9856]}
                 zoom={13}
-                minZoom={5}
                 scrollWheelZoom
+                //@ts-ignore
+                whenCreated={setMapInstance}
                 style={{ height: "100%", width: "100%" }}
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    attribution="&copy; OpenStreetMap contributors"
                 />
 
                 {location && (
@@ -83,16 +84,24 @@ export default function MapRenderer({
                     />
                 ))}
 
-                {route.length === 2 && <RouteLine positions={route} />}
+                {route.length === 2 && (
+                    <RouteLine
+                        positions={route}
+                        setDirections={setDirections}
+                    />
+                )}
             </MapContainer>
 
             {selectedPlace && location && (
                 <Sidebar
                     place={selectedPlace}
                     location={location}
+                    directions={directions}
+                    map={mapInstance}
                     onClose={() => {
                         setSelectedPlace(null)
                         setRoute([])
+                        setDirections([])
                     }}
                     onGetDirections={() => handleGetDirections(selectedPlace)}
                 />
@@ -101,26 +110,64 @@ export default function MapRenderer({
     )
 }
 
-const RouteLine = ({ positions }: { positions: LatLngTuple[] }) => {
+const RouteLine = ({
+    positions,
+    setDirections,
+}: {
+    positions: LatLngTuple[]
+    setDirections: (steps: Step[]) => void
+}) => {
     const map = useMap()
 
     useEffect(() => {
         if (!positions || positions.length < 2) return
 
-        //@ts-expect-error ts-migrate(2554) FIXME: Expected 1-2 arguments, but got 3.
+        //@ts-expect-error install leaflet-routing-machine
         const routingControl = L.Routing.control({
             waypoints: positions.map((pos) => L.latLng(pos)),
             createMarker: () => null,
             addWaypoints: false,
+            show: false,
             lineOptions: {
                 styles: [{ color: "#1976d2", weight: 6 }],
             },
+            //@ts-ignore install leaflet-routing-machine
+            router: L.Routing.osrmv1({
+                serviceUrl: "https://router.project-osrm.org/route/v1",
+            }),
         }).addTo(map)
+
+        routingControl.on("routesfound", (e: any) => {
+            const route = e.routes[0]
+            const steps: Step[] = []
+
+            route.legs?.forEach((leg: any) => {
+                leg.steps?.forEach((step: any) => {
+                    if (step.instruction && step.latLng) {
+                        steps.push({
+                            instruction: step.instruction,
+                            latLng: step.latLng,
+                            distance: step.distance,
+                        })
+
+                        // Optional: Step marker
+                        L.circleMarker(step.latLng, {
+                            radius: 32,
+                            color: "red",
+                            fillColor: "red",
+                            fillOpacity: 1,
+                        }).addTo(map)
+                    }
+                })
+            })
+
+            setDirections(steps)
+        })
 
         return () => {
             map.removeControl(routingControl)
         }
-    }, [positions, map])
+    }, [positions, map, setDirections])
 
     return null
 }
