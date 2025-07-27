@@ -185,7 +185,9 @@
   font-family: sans-serif;
   max-width: 300px;
   z-index: 9999;
+
 }
+
 
 .leaflet-routing-alt {
   background: #f9f9f9 !important;
