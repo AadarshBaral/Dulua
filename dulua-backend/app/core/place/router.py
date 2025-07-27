@@ -105,6 +105,7 @@ async def add_category(category: CategoryCreate, session: Session = Depends(get_
 
 @router.get("/get_place/{place_id}", response_model=PublicPlace)
 async def get_place(request: Request, place_id: UUID, session: Session = Depends(get_session)):
+    print('hi', place_id)
     baseurl = str(request.base_url).rstrip("/")
     place = session.exec(select(Place).where(
         Place.place_id == place_id)).first()
@@ -116,6 +117,7 @@ async def get_place(request: Request, place_id: UUID, session: Session = Depends
         Place.city_id == place.city_id)).first()
     categories = [CategoryRead.model_validate(cat) for cat in place.categories]
     place_result = PublicPlace(
+        place_id=place.place_id,
         city_id=city.city_id,
         city_name=city.geo_location.name,
         name=geo_location.name,
@@ -229,6 +231,7 @@ async def all_places(session: Session = Depends(get_session)):
             cat) for cat in place.categories]
 
         place_result = PublicPlace(
+            place_id=place.place_id,
             city_id=city.city_id,
             city_name=city.geo_location.name,
             name=geo_location.name,

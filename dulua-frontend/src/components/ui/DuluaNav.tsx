@@ -21,9 +21,9 @@ const DuluaNav = ({
         (state: RootState) => state.authModal.modalOpen
     )
     const pathname = usePathname()
-    console.log(pathname)
+
     const user = useAppSelector((state: RootState) => state.auth.user)
-    console.log(user)
+
     const dispatch = useAppDispatch()
     return (
         <div
@@ -42,7 +42,7 @@ const DuluaNav = ({
             {pathname == "/" && (
                 <div className="herodetail flex flex-col items-center gap-4">
                     <div className="discover">Discover</div>
-                    <div className="city text-6xl font-semibold tracking-widest">
+                    <div className="city text-6xl font-semibold tracking-widest text-primary">
                         {heroTitle.toUpperCase()}
                     </div>
                     <WeatherInfo />
