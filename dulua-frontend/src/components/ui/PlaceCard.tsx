@@ -1,19 +1,27 @@
 "use client"
-
 import { IPlace } from "@api/core"
 import Image from "next/image"
-import React, { useState } from "react"
+import { useRouter } from "next/navigation"
+import { ReactPortal } from "react"
+import { redirect } from "next/navigation"
+
 import { FaStar } from "react-icons/fa"
 import { IoHeartSharp } from "react-icons/io5"
 import { IoHeartOutline } from "react-icons/io5"
 const PlaceCard = ({ place }: { place: IPlace }) => {
-    const [isBookmarked, setIsBookmarked] = React.useState(false)
+    // const [isBookmarked, setIsBookmarked] = React.useState(false)
+    let isBookmarked = false
+    const router = useRouter()
+
     return (
-        <div className="place list-style-none selection-none">
+        <div
+            onClick={() => router.push(`/place/${place.place_id}`)}
+            className="place list-style-none selection-none cursor-pointer group"
+        >
             <div className="img-container relative selection-none">
                 {isBookmarked ? (
                     <div
-                        onClick={() => setIsBookmarked((prev) => !prev)}
+                        // onClick={() => setIsBookmarked((prev) => !prev)}
                         className="clickable-target h-[48px] w-[48px]   absolute right-2 top-2 select-none"
                     >
                         <IoHeartSharp
@@ -26,7 +34,7 @@ const PlaceCard = ({ place }: { place: IPlace }) => {
                     </div>
                 ) : (
                     <div
-                        onClick={() => setIsBookmarked((prev) => !prev)}
+                        // onClick={() => setIsBookmarked((prev) => !prev)}
                         className=" h-[48px] w-[48px]  clickable-target p-4  absolute right-2 top-2 select-none"
                     >
                         <IoHeartOutline
@@ -40,7 +48,7 @@ const PlaceCard = ({ place }: { place: IPlace }) => {
                 <Image
                     src="/default.png"
                     alt="image"
-                    className="rounded-3xl mb-2 select-none h-[250px] w-[250px] object-cover"
+                    className="rounded-3xl mb-2 select-none h-[250px] w-[250px] object-cover group-hover:border-2 border-gray-300"
                     height={325}
                     width={325}
                 />
