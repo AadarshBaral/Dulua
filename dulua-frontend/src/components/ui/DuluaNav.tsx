@@ -8,6 +8,7 @@ import { openModal } from "store/appSlice/modalStore"
 import { useRouter } from "next/router"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { cn } from "@lib/utils"
 const DuluaNav = ({
     heroDetail = false,
     heroTitle = "Pokhara",
@@ -25,7 +26,12 @@ const DuluaNav = ({
     console.log(user)
     const dispatch = useAppDispatch()
     return (
-        <div className="w-full flex justify-between items-start py-4">
+        <div
+            className={cn(
+                "w-full flex justify-between items-start py-4  ",
+                pathname === "/city-map" && "bg-green-300"
+            )}
+        >
             <Link
                 href={"/"}
                 className="navlogo flex justify-center items-center gap-2"

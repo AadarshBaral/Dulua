@@ -1,13 +1,21 @@
+import { fetchPlaces } from "@api/core"
 import GuideWelcomCard from "@components/ui/GuideWelcome"
+import PlaceCard from "@components/ui/PlaceCard"
+
 import Image from "next/image"
 import React from "react"
+import { FaStar } from "react-icons/fa"
+import { IoHeartSharp } from "react-icons/io5"
+import { IoHeartOutline } from "react-icons/io5"
 
-const Page = () => {
+const Page = async () => {
+    const places = await fetchPlaces()
+    console.log(places)
     return (
         <div className="relative p-4 mx-20 ">
             {/* Header */}
 
-            <div className="flex gap-4 mt-8 h-[60vh]">
+            <div className="flex gap-4 mt-8 h-[60vh] mb-16">
                 {/* Left Card */}
                 <div className="relative w-1/2  overflow-hidden ">
                     <Image
@@ -15,12 +23,14 @@ const Page = () => {
                         height={500}
                         src={"/batcave.png"}
                         alt="Bat Cave"
-                        className="w-full h-full object-fill rounded-4xl "
+                        className="w-full h-full object-cover rounded-[3rem]"
                     />
-                    <div className="overlay bg-gradient-to-t from-black/40 to-transparent absolute top-0 left-0 w-full h-full rounded-4xl"></div>
+                    <div className="overlay bg-gradient-to-t from-black/40 to-transparent absolute top-0 left-0 w-full h-full rounded-[3rem]"></div>
 
-                    <div className="absolute z-0 bottom-2 w-[95%] ml-auto mr-auto left-0 right-0 h-fit rounded-4xl text-white bg-green-900/ bg-opacity-50  p-4   bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-60">
-                        <h3 className="font-semibold">Bat Cave</h3>
+                    <div className="absolute z-0 bottom-3 w-[95%] ml-auto mr-auto left-0 right-0 h-fit rounded-4xl text-white bg-green-800/20 bg-opacity-50  p-4   bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-60">
+                        <h3 className="font-semibold text-2xl mb-2">
+                            Bat Cave
+                        </h3>
                         <p className="text-sm">Dare to explore?</p>
                     </div>
                 </div>
@@ -28,20 +38,99 @@ const Page = () => {
                     <Image
                         width={500}
                         height={500}
-                        src={"/batcave.png"}
+                        src={"/pokhara.png"}
                         alt="Bat Cave"
-                        className="w-full h-full object-fill rounded-4xl "
+                        className="w-full h-full object-cover rounded-[3rem] "
                     />
-                    <div className="overlay bg-gradient-to-t from-black/40 to-transparent absolute top-0 left-0 w-full h-full rounded-4xl"></div>
+                    <div className="overlay bg-gradient-to-t from-black/40 to-transparent absolute top-0 left-0 w-full h-full rounded-[3rem]"></div>
 
-                    <div className="absolute z-0 bottom-2 w-[95%] ml-auto mr-auto left-0 right-0 h-fit rounded-4xl text-white bg-green-900/ bg-opacity-50  p-4   bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-60">
-                        <h3 className="font-semibold">Another Bat Cave</h3>
+                    <div className="absolute z-0 bottom-3 w-[95%] ml-auto mr-auto left-0 right-0 h-fit rounded-4xl text-white bg-green-800/20 bg-opacity-50  p-4   bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-60">
+                        <h3 className="font-semibold text-2xl mb-2">
+                            Bat Cave
+                        </h3>
                         <p className="text-sm">Dare to explore?</p>
                     </div>
                 </div>
             </div>
-            <div className="cont py-20"></div>
-            <GuideWelcomCard />
+            <div className="places">
+                <p className="mb-4 text-xl font-semibold">
+                    Must Visit in Pokhara
+                </p>
+                <div className="cont flex flex-wrap gap-6">
+                    {/* <IoHeartOutline /> */}
+                    {places?.map((place, index) => (
+                        <PlaceCard key={index} place={place} />
+                        // <div key={index} className="place list-style-none">
+                        //     <div className="img-container relative">
+                        //         <IoHeartSharp
+                        //             className="absolute right-2 top-2"
+                        //             size={30}
+                        //             color="gray"
+                        //         />
+
+                        //         <Image
+                        //             src="/default.png"
+                        //             alt="image"
+                        //             className="rounded-xl mb-2"
+                        //             width={250}
+                        //             height={270}
+                        //         />
+                        //     </div>
+                        //     <h3 className="text-lg font-semibold ">
+                        //         {place.name}
+                        //     </h3>
+
+                        //     <div className="place-details flex flex-row gap-2">
+                        //         <p>{place.city_name}</p>
+                        //         <p className="text-gray-300">|</p>
+                        //         <div className="flex flex-row justify-center items-center gap-2">
+                        //             <FaStar />
+                        //             <p>4.9</p>
+                        //         </div>
+                        //     </div>
+                        // </div>
+                    ))}
+                </div>
+                <div className="cont my-16"></div>
+                <div className="cont flex flex-wrap gap-6">
+                    {/* <IoHeartOutline /> */}
+                    {places?.map((place, index) => (
+                        <PlaceCard key={index} place={place} />
+                        // <div key={index} className="place list-style-none">
+                        //     <div className="img-container relative">
+                        //         <IoHeartSharp
+                        //             className="absolute right-2 top-2"
+                        //             size={30}
+                        //             color="gray"
+                        //         />
+
+                        //         <Image
+                        //             src="/default.png"
+                        //             alt="image"
+                        //             className="rounded-xl mb-2"
+                        //             width={250}
+                        //             height={270}
+                        //         />
+                        //     </div>
+                        //     <h3 className="text-lg font-semibold ">
+                        //         {place.name}
+                        //     </h3>
+
+                        //     <div className="place-details flex flex-row gap-2">
+                        //         <p>{place.city_name}</p>
+                        //         <p className="text-gray-300">|</p>
+                        //         <div className="flex flex-row justify-center items-center gap-2">
+                        //             <FaStar />
+                        //             <p>4.9</p>
+                        //         </div>
+                        //     </div>
+                        // </div>
+                    ))}
+                </div>
+                <div className="cont my-20">
+                    <GuideWelcomCard />
+                </div>
+            </div>
         </div>
     )
 }

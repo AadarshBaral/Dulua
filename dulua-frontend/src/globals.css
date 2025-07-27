@@ -163,3 +163,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+.leaflet-control {
+  z-index: 0 !important
+}
+
+.leaflet-pane {
+  z-index: 0 !important
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 0 !important
+}
+
+.leaflet-routing-container {
+  background: white !important;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  font-family: sans-serif;
+  max-width: 300px;
+  z-index: 9999;
+}
+
+.leaflet-routing-alt {
+  background: #f9f9f9 !important;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
