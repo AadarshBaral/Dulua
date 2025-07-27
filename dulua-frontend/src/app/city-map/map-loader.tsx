@@ -1,26 +1,31 @@
 "use client"
+
 import dynamic from "next/dynamic"
 import { useMemo } from "react"
 import { pokharaPlaces } from "@lib/data"
 import useCurrentLocation, { ILocation } from "@hooks/useCurrentLocation"
+
 export const MapLoader = () => {
     const { location } = useCurrentLocation()
-    console.log(location)
+
     const Map = useMemo(
         () =>
-            dynamic(() => import("@components/map/Map"), {
-                loading: () => <p>A map is loading</p>,
+            dynamic(() => import("@components/ui/MapRenderer"), {
+                loading: () => (
+                    <div className="flex h-[100vh] justify-center items-center">
+                        A map is loading...
+                    </div>
+                ),
                 ssr: false,
             }),
         []
     )
 
     return (
-        <>
-            <div className="bg-white-700 mx-auto my-5 w-[98%] h-screen">
-                <Map mapData={pokharaPlaces} location={location as ILocation} />
-            </div>
-        </>
+        <div className="cont absolute inset-0">
+            <Map mapData={pokharaPlaces} location={location as ILocation} />
+        </div>
     )
 }
-export default Map
+
+export default MapLoader

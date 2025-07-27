@@ -29,7 +29,7 @@ const DuluaNav = ({
         <div
             className={cn(
                 "w-full flex justify-between items-start py-4  ",
-                pathname === "/city-map" && "bg-green-300"
+                pathname === "/city-map" && "hidden"
             )}
         >
             <Link
