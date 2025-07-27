@@ -43,6 +43,7 @@ class CategoryRead(BaseModel):
 
 
 class PublicPlace(GeolocationCreate):
+    place_id: UUID
     city_id: UUID
     city_name: str
     category: List[CategoryRead]
