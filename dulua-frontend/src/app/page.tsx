@@ -1,3 +1,4 @@
+import GuideWelcomCard from "@components/ui/GuideWelcome"
 import Image from "next/image"
 import React from "react"
 
@@ -39,6 +40,8 @@ const Page = () => {
                     </div>
                 </div>
             </div>
+            <div className="cont py-20"></div>
+            <GuideWelcomCard />
         </div>
     )
 }
