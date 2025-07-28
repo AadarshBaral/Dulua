@@ -1,8 +1,8 @@
 // src/app/api/weather/route.ts
 import { NextRequest } from "next/server"
 
-export const dynamic = "force-dynamic" // for dynamic route
-export const revalidate = 600 // cache for 600 seconds (10 mins)
+export const dynamic = "force-dynamic"
+export const revalidate = 600
 
 export async function GET(req: NextRequest) {
     const city = req.nextUrl.searchParams.get("city") || "Pokhara"

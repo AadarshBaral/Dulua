@@ -168,7 +168,8 @@ async def add_review(
         if ext not in ["jpg", "jpeg", "png"]:
             raise HTTPException(status_code=400, detail="Invalid image format")
 
-        new_filename = f"{UUID.uuid4()}.{ext}"
+        new_filename = f"{uuid.uuid4()}.{ext}"
+        print(new_filename)
         file_path = UPLOAD_DIR / new_filename
 
         with file_path.open("wb") as buffer:

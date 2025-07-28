@@ -29,7 +29,7 @@ export type Step = {
     distance: number
 }
 
-export default function MapRenderer({
+function MapRenderer({
     mapData,
     location,
 }: {
@@ -171,3 +171,5 @@ const RouteLine = ({
 
     return null
 }
+
+export default MapRenderer

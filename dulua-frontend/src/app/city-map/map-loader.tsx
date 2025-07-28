@@ -7,7 +7,9 @@ import useCurrentLocation, { ILocation } from "@hooks/useCurrentLocation"
 
 export const MapLoader = () => {
     const { location } = useCurrentLocation()
-
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser")
+    }
     const Map = useMemo(
         () =>
             dynamic(() => import("@components/ui/MapRenderer"), {
@@ -22,8 +24,14 @@ export const MapLoader = () => {
     )
 
     return (
-        <div className="cont absolute inset-0">
-            <Map mapData={pokharaPlaces} location={location as ILocation} />
+        <div className="map-container absolute inset-0 z-0">
+            {location ? (
+                <Map mapData={pokharaPlaces} location={location as ILocation} />
+            ) : (
+                <div className="flex h-[100vh] justify-center items-center text-sm text-gray-500">
+                    Getting your location...
+                </div>
+            )}
         </div>
     )
 }
