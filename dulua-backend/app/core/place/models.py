@@ -49,12 +49,12 @@ class Review(SQLModel, table=True):
                             primary_key=True, nullable=False)
     tourist_id: UUID = Field(default_factory=uuid.uuid4,
                              primary_key=True, nullable=False)
-    place_id: UUID = Field(foreign_key="place.place_id", nullable=False)
-    place: Optional["Place"] = Relationship(back_populates="reviews")
     rating: float = Field(nullable=False)
     comment: str = Field(nullable=False)
     timestamp: str = Field(nullable=False)
     images: List["ImageData"] = Relationship(back_populates="review")
+    place_id: UUID = Field(foreign_key="place.place_id", nullable=False)
+    place: Optional["Place"] = Relationship(back_populates="reviews")
 
 
 class ImageData(SQLModel, table=True):
