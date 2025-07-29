@@ -12,6 +12,40 @@ interface Props {
     params: Promise<{ place_detail: string }>
 }
 
+import { Metadata } from "next"
+
+export async function generateMetadata({
+    params,
+}: {
+    params: { place_detail: string }
+}): Promise<Metadata> {
+    const { place_detail } = params
+    const placeData = await getPlace(place_detail)
+
+    return {
+        title: `${placeData?.name} | Explore Pokhara`,
+        description: placeData?.description?.slice(0, 150),
+        openGraph: {
+            title: `${placeData?.name} | Explore Pokhara`,
+            description: placeData?.description?.slice(0, 150),
+            images: [
+                {
+                    url: placeData?.featured_image_secondary || "/default.png",
+                    width: 1200,
+                    height: 630,
+                    alt: placeData?.name,
+                },
+            ],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: `${placeData?.name} | Explore Pokhara`,
+            description: placeData?.description?.slice(0, 150),
+            images: [placeData?.featured_image_secondary || "/default.png"],
+        },
+    }
+}
+
 export default async function PlaceDetail({ params }: Props) {
     const { place_detail } = await params
     console.log(place_detail)
@@ -87,7 +121,7 @@ export default async function PlaceDetail({ params }: Props) {
 
                 <Tab key="reviews" title="Reviews">
                     <div className="mb-8">
-                        <h3 className="font-medium mb-2">Review</h3>
+                        <Review />
                     </div>
                 </Tab>
             </Tabs>
