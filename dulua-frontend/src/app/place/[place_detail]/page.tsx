@@ -121,7 +121,7 @@ export default async function PlaceDetail({ params }: Props) {
 
                 <Tab key="reviews" title="Reviews">
                     <div className="mb-8">
-                        <Review />
+                        <Review place_id={place_detail} />
                     </div>
                 </Tab>
             </Tabs>

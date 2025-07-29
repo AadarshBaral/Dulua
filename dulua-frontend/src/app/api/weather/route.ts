@@ -1,4 +1,3 @@
-// src/app/api/weather/route.ts
 import { NextRequest } from "next/server"
 
 export const dynamic = "force-dynamic"
@@ -11,7 +10,6 @@ export async function GET(req: NextRequest) {
 
     try {
         const res = await fetch(url, {
-            // Enable Next.js-level caching (ISR)
             next: { revalidate: 600 },
         })
         const data = await res.json()

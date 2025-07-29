@@ -50,6 +50,7 @@ class Review(SQLModel, table=True):
     tourist_id: UUID = Field(default_factory=uuid.uuid4,
                              primary_key=True, nullable=False)
     rating: float = Field(nullable=False)
+    cleanliness: float = Field(nullable=False)
     comment: str = Field(nullable=False)
     timestamp: str = Field(nullable=False)
     images: List["ImageData"] = Relationship(back_populates="review")

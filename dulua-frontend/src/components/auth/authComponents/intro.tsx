@@ -12,7 +12,7 @@ const Intro = ({
     changePageState: (state: Step) => void
 }) => {
     return (
-        <div className="w-full flex gap-12 flex-col">
+        <div className="w-full flex gap-12 flex-col ">
             <div className="intro flex flex-col gap-2">
                 <div className="logo flex justify-center items-center rounded-xl border-2 border-gray-100 text-gray-300 p-4 h-[70px] w-[70px]">
                     Logo

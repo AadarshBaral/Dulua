@@ -51,12 +51,13 @@ const AuthLayout = () => {
         <>
             {modalOpen && (
                 <div
-                    className="wrapper absolute z-50  top-0 flex justify-center items-center  w-full h-full bg-black/40"
+                    className="wrapper flex justify-center items-center  w-full h-full bg-black/40 absolute "
                     onClick={() => dispatch(closeModal())}
+                    style={{ zIndex: 10000 }}
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}
-                        className="fixed sm:min-w-md min-w-full  h-full sm:min-h-[550px] sm:h-auto  sm:border-2 border-gray-200 bg-white sm:rounded-2xl rounded-none flex flex-col justify-center sm:justify-start gap-4 p-4 md:shadow-sm"
+                        className="fixed left-[50%] -translate-x-[50%] top-20  sm:min-w-md min-w-full  h-full sm:min-h-[550px] sm:h-auto  sm:border-2 border-gray-200 bg-white sm:rounded-2xl rounded-none flex flex-col justify-center sm:justify-start gap-4 p-4 md:shadow-sm"
                     >
                         <div className="actions   flex flex-row w-full justify-between items-center">
                             <p>
