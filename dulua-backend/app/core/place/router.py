@@ -1,3 +1,5 @@
+from datetime import datetime
+from app.dependencies import get_userID_from_token
 import uuid
 from sqlmodel import select, Session  # type: ignore
 from typing import List, Optional
@@ -10,6 +12,7 @@ from .schema import CategoryCreate, CategoryEnum, CategoryRead, PublicPlace, Rev
 from app.core.city.models import City, Geolocation
 from pathlib import Path
 import shutil
+from fastapi.responses import JSONResponse
 from fastapi import Request
 router = APIRouter()
 UPLOAD_DIR = Path("uploads/reviews")
@@ -136,21 +139,45 @@ async def get_place(request: Request, place_id: UUID, session: Session = Depends
 @router.post("/add_review")
 async def add_review(
     place_id: str = Form(...),
-    tourist_id: str = Form(...),
     rating: int = Form(...),
+    cleanliness: int = Form(...),
     comment: str = Form(...),
     timestamp: str = Form(...),
     images: list[UploadFile] = File([]),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    user_id: str = Depends(get_userID_from_token)
 ):
+    # ✅ Validate place_id
+    try:
+        place_uuid = UUID(place_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid place_id format")
 
-    place_uuid = UUID(place_id)
-    tourist_uuid = UUID(tourist_id)
+    # ✅ Validate rating and cleanliness
+    if not (1 <= rating <= 5):
+        raise HTTPException(
+            status_code=400, detail="Rating must be between 1 and 5")
+    if not (1 <= cleanliness <= 5):
+        raise HTTPException(
+            status_code=400, detail="Cleanliness must be between 1 and 5")
 
+    # ✅ Validate comment
+    if not comment.strip():
+        raise HTTPException(status_code=400, detail="Comment cannot be empty")
+
+    # ✅ Validate timestamp
+    try:
+        datetime.fromisoformat(timestamp)
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="Invalid timestamp format. Must be ISO 8601.")
+
+    # ✅ Save review
     review = Review(
         place_id=place_uuid,
-        tourist_id=tourist_uuid,
+        tourist_id=UUID(user_id),
         rating=rating,
+        cleanliness=cleanliness,
         comment=comment,
         timestamp=timestamp
     )
@@ -158,28 +185,41 @@ async def add_review(
     session.commit()
     session.refresh(review)
 
+    # ✅ Validate and save images
     for image in images:
-        print("Processing image")
+        if image.filename == "":
+            continue  # skip empty input
+
         if not image.content_type.startswith("image/"):
             raise HTTPException(
-                status_code=400, detail="File must be an image")
+                status_code=400, detail="Only image files are allowed")
 
         ext = image.filename.split(".")[-1].lower()
         if ext not in ["jpg", "jpeg", "png"]:
-            raise HTTPException(status_code=400, detail="Invalid image format")
+            raise HTTPException(
+                status_code=400, detail="Only JPG, JPEG, or PNG images are supported")
 
         new_filename = f"{uuid.uuid4()}.{ext}"
-        print(new_filename)
         file_path = UPLOAD_DIR / new_filename
 
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
 
         img_data = ImageData(
-            image=new_filename, review_id=review.review_id, place_id=review.place_id)
+            image=new_filename,
+            review_id=review.review_id,
+            place_id=review.place_id
+        )
         session.add(img_data)
 
     session.commit()
+
+    return JSONResponse(
+        status_code=201,
+        content={
+            "message": "Review added successfully"
+        }
+    )
 
 
 @router.get("/get_reviews/{place_id}", response_model=list[ReviewPublic])
@@ -196,6 +236,7 @@ async def get_review(request: Request, place_id: UUID, session: Session = Depend
             place_id=rev.place_id,
             tourist_id=rev.tourist_id,
             rating=rev.rating,
+            cleanliness=rev.cleanliness,
             comment=rev.comment,
             timestamp=rev.timestamp,
             images=[f"{baseurl}/images/reviews/{ImageData(**img.dict()).image}"

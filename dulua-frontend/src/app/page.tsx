@@ -60,35 +60,7 @@ const Page = async () => {
                     {/* <IoHeartOutline /> */}
                     {places?.map((place, index) => (
                         <PlaceCard key={index} place={place} />
-                        // <div key={index} className="place list-style-none">
-                        //     <div className="img-container relative">
-                        //         <IoHeartSharp
-                        //             className="absolute right-2 top-2"
-                        //             size={30}
-                        //             color="gray"
-                        //         />
-
-                        //         <Image
-                        //             src="/default.png"
-                        //             alt="image"
-                        //             className="rounded-xl mb-2"
-                        //             width={250}
-                        //             height={270}
-                        //         />
-                        //     </div>
-                        //     <h3 className="text-lg font-semibold ">
-                        //         {place.name}
-                        //     </h3>
-
-                        //     <div className="place-details flex flex-row gap-2">
-                        //         <p>{place.city_name}</p>
-                        //         <p className="text-gray-300">|</p>
-                        //         <div className="flex flex-row justify-center items-center gap-2">
-                        //             <FaStar />
-                        //             <p>4.9</p>
-                        //         </div>
-                        //     </div>
-                        // </div>
+                      
                     ))}
                 </div>
 

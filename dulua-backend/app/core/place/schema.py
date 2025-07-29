@@ -68,6 +68,7 @@ class ReviewCreate(BaseModel):
     place_id: UUID
     tourist_id: UUID
     rating: float
+    cleanliness: float
     comment: str
     timestamp: str
 

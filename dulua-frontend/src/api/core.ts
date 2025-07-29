@@ -1,3 +1,15 @@
+import FormData from "form-data"
+import fs from "fs"
+
+type ReviewPayload = {
+    comment: string
+    rating: number
+    cleanliness: number
+    timestamp: string
+    place_id: string
+    images: File[] // or Blob[] if on frontend
+}
+
 export interface IPlace {
     place_id: string
     city_id: string
@@ -49,4 +61,34 @@ export const getPlace = async (place_id: string): Promise<IPlace | null> => {
         console.error("Error fetching places:", error)
         return null
     }
+}
+export async function sendReview(data: ReviewPayload, token: string) {
+    const formData = new FormData()
+    console.log("here is submitted data", data)
+    formData.append("comment", data.comment)
+    formData.append("rating", data.rating.toString())
+    formData.append("cleanliness", data.cleanliness.toString())
+    formData.append("timestamp", data.timestamp)
+    formData.append("place_id", data.place_id)
+    console.log("its token", token)
+    data.images.forEach((file) => {
+        formData.append("images", file as any, file.name)
+    })
+    const url = `${process.env.API_URL || "http://localhost:8000"}/place/add_review`
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            Authorization: `bearer ${token}`,
+        },
+        body: formData as any,
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+        throw new Error(result?.message || "Failed to submit review")
+    }
+
+    return result
 }
