@@ -1,9 +1,12 @@
-from fastapi import Header, HTTPException, Request
+from fastapi import Header, HTTPException, Request,Depends
 import jwt
+from sympy import im
 from typing_extensions import Annotated
-
+from sqlmodel import Session, select
 from .config import settings
-
+from app.core.userprofile.models import UserProfile
+from app.session import get_session
+from uuid import UUID
 
 SECRET_KEY = settings.APP_SECRET
 ALGORITHM = "HS256"
@@ -67,7 +70,7 @@ def get_email_from_token(request: Request):
 
 def get_userID_from_token(request: Request):
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("bearer "):
+    if not auth_header or not auth_header.startswith("Bearer"):
         raise HTTPException(status_code=401, detail="Invalid auth header")
 
     token = auth_header.split(" ")[1]
@@ -76,6 +79,18 @@ def get_userID_from_token(request: Request):
         id = payload.get("userId")
         if not id:
             raise HTTPException(status_code=403, detail="ID missing in token")
-        return id
+        return UUID(id)
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=403, detail="Invalid token")
+
+
+def get_my_profile(
+    request: Request,
+    session: Session = Depends(get_session)
+):
+    user_id = get_userID_from_token(request)
+    statement = select(UserProfile).where(UserProfile.userdb_id == user_id)
+    result = session.exec(statement).first()
+    if not result:
+        raise HTTPException(status_code=404, detail="UserProfile not found")
+    return result

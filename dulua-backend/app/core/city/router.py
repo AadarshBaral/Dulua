@@ -25,7 +25,12 @@ async def add_city(city: GeolocationCreate, session: Session = Depends(get_sessi
                 name=city.name)
     session.add(city)
     session.commit()
-    return {"message": "Geolocation added", "geo_location": geo_location.dict()}
+    # return {"message": "Geolocation added", "geo_location": geo_location.dict()}
+    return {
+    "message": "Geolocation and City added successfully",
+    "geo_location_id": geo_location.geo_location_id,
+    "city_id": city.city_id
+}
 
 
 @router.get("/all_cities")

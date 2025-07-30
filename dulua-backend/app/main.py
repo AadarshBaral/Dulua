@@ -8,6 +8,7 @@ from .core.trash_detection import router as detect_trash
 from app.core.city import router as city_router
 from app.core.place import router as place_router
 from app.core.local_guide import router as local_guide_router
+from app.core.userprofile import router as user_perofile_router
 app = FastAPI(openapi_tags=tags_metadata)
 
 origins = [
@@ -43,6 +44,7 @@ app.include_router(city_router.router, prefix="/city", tags=["City"])
 app.include_router(place_router.router, prefix="/place", tags=["Place"])
 app.include_router(local_guide_router.router,
                    prefix="/local_guide", tags=["Local Guide"])
+app.include_router(user_perofile_router.router,prefix="/user",tags=["Userproile"])
 
 
 @app.get("/")

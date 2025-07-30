@@ -73,3 +73,7 @@ class ReviewCreate(BaseModel):
 
 class ReviewPublic(ReviewCreate):
     images: List[str]
+
+
+class BookmarkRequest(BaseModel):
+    place_id:UUID
