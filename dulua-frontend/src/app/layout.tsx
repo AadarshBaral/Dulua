@@ -40,7 +40,7 @@ export default function RootLayout({
                         {children}
                     </div>
 
-                    <Footer />
+                    {/* <Footer /> */}
                 </body>
             </StoreProvider>
         </html>
