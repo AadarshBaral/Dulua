@@ -31,7 +31,7 @@ const page = () => {
               alt=""
             />
             <div className="flex flex-col">
-              <h1 className="text-[24px]">Alex Manroe</h1>
+              <h1 className="text-[24px]">Pawan Dhoj</h1>
               <p className="text-[14px] font-light">@alex2139</p>
               <div className="mt-[11px] flex space-x-4">
                 <div>
