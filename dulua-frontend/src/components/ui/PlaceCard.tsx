@@ -2,7 +2,7 @@
 import { IPlace } from "@api/core"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ReactPortal } from "react"
+import { ReactPortal, useState } from "react"
 import { redirect } from "next/navigation"
 
 import { FaStar } from "react-icons/fa"
@@ -12,7 +12,8 @@ const PlaceCard = ({ place }: { place: IPlace }) => {
     // const [isBookmarked, setIsBookmarked] = React.useState(false)
     let isBookmarked = false
     const router = useRouter()
-
+    const [imgSrc, setImgSrc] = useState(place.featured_image_main)
+    console.log("hahaha", place)
     return (
         <div
             onClick={() => router.push(`/place/${place.place_id}`)}
@@ -46,11 +47,12 @@ const PlaceCard = ({ place }: { place: IPlace }) => {
                 )}
 
                 <Image
-                    src="/default.png"
+                    src={imgSrc}
                     alt="image"
                     className="rounded-3xl mb-2 select-none h-[250px] w-[250px] object-cover group-hover:border-2 border-gray-300"
                     height={325}
                     width={325}
+                    onError={() => setImgSrc("/default.png")}
                 />
             </div>
             <h3 className="text-lg font-semibold ">{place.name}</h3>

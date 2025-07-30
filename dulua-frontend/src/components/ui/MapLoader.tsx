@@ -4,8 +4,15 @@ import dynamic from "next/dynamic"
 import { useMemo } from "react"
 import { pokharaPlaces } from "@lib/data"
 import useCurrentLocation, { ILocation } from "@hooks/useCurrentLocation"
+import { Place } from "@lib/types"
 
-export const MapLoader = () => {
+export const MapLoader = ({
+    places,
+    sidebar,
+}: {
+    places: Place[]
+    sidebar: boolean
+}) => {
     const { location } = useCurrentLocation()
     if (!navigator.geolocation) {
         alert("Geolocation is not supported by your browser")
@@ -14,7 +21,7 @@ export const MapLoader = () => {
         () =>
             dynamic(() => import("@components/ui/MapRenderer"), {
                 loading: () => (
-                    <div className="flex h-[100vh] justify-center items-center">
+                    <div className="flex h-full justify-center items-center">
                         A map is loading...
                     </div>
                 ),
@@ -24,15 +31,16 @@ export const MapLoader = () => {
     )
 
     return (
-        <div className="map-container absolute inset-0 z-0">
+        <div className="map-container z-0 m-4">
             {location ? (
                 <Map
-                    mapData={pokharaPlaces}
+                    mapData={places}
                     location={location as ILocation}
-                    className="w-[100vw] h-[100vh]"
+                    className="w-[800px] h-[600px]"
+                    sidebar={sidebar}
                 />
             ) : (
-                <div className="flex h-[100vh] justify-center items-center text-sm text-gray-500">
+                <div className="flex h-full justify-center items-center text-sm text-gray-500">
                     Getting your location...
                 </div>
             )}

@@ -12,6 +12,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { Place } from "@lib/types"
 import { ILocation } from "@hooks/useCurrentLocation"
 import Sidebar from "./Sidebar"
+import { cn } from "@lib/utils"
 
 const MyLocationIcon = new L.Icon({
     iconUrl: "/usermarker.png",
@@ -32,9 +33,13 @@ export type Step = {
 function MapRenderer({
     mapData,
     location,
+    className,
+    sidebar = true,
 }: {
     mapData: Place[]
     location: ILocation
+    className?: string
+    sidebar?: boolean
 }) {
     const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
     const [route, setRoute] = useState<LatLngTuple[]>([])
@@ -50,7 +55,7 @@ function MapRenderer({
     }
 
     return (
-        <div className="relative w-[100vw] h-[100vh]">
+        <div className={cn("relative h-32 w-32", className)}>
             <MapContainer
                 center={[28.2096, 83.9856]}
                 zoom={13}
@@ -92,7 +97,7 @@ function MapRenderer({
                 )}
             </MapContainer>
 
-            {selectedPlace && location && (
+            {selectedPlace && sidebar && location && (
                 <Sidebar
                     place={selectedPlace}
                     location={location}

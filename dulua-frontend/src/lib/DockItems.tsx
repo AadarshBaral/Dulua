@@ -28,13 +28,13 @@ export const links = [
         href: "/city-map",
     },
 
-    {
-        title: "Hiking",
-        icon: (
-            <IconLeaf2 className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-        ),
-        href: "#",
-    },
+    // {
+    //     title: "Hiking",
+    //     icon: (
+    //         <IconLeaf2 className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+    //     ),
+    //     href: "#",
+    // },
     {
         title: "Profile",
         icon: (

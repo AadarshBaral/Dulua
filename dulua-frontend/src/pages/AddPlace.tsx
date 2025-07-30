@@ -69,7 +69,7 @@ export default function AddPlace() {
             data.append("featured_image_secondary", featuredSecondary)
 
         try {
-            const res = await fetch("http://localhost:8000/city/add_place", {
+            const res = await fetch("http://localhost:8000/place/add_place", {
                 method: "POST",
                 body: data,
             })
