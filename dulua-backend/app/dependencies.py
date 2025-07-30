@@ -7,6 +7,8 @@ from .config import settings
 from app.core.userprofile.models import UserProfile
 from app.session import get_session
 from uuid import UUID
+import random
+import string
 
 SECRET_KEY = settings.APP_SECRET
 ALGORITHM = "HS256"
@@ -94,3 +96,11 @@ def get_my_profile(
     if not result:
         raise HTTPException(status_code=404, detail="UserProfile not found")
     return result
+
+
+def generate_handle(name: str) -> str:
+    
+    first_name = name.strip().split()[0].lower()
+   
+    random_digits = ''.join(random.choices(string.digits, k=4))
+    return f"@{first_name}{random_digits}"

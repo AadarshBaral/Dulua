@@ -10,6 +10,7 @@ class UserProfile(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     userdb_id: UUID = Field(foreign_key="userdb.id", unique=True)
+    handle: str = Field(index=True, unique=True)
     image: Optional[str] = None
     contribution: int = 0
     green_points: int = 0

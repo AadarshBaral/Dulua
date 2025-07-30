@@ -259,6 +259,13 @@ def toggle_bookmark(
     current_user: UserProfile = Depends(get_my_profile),
 ):
     place_id=data.place_id
+    place = session.exec(
+    select(Place).where(Place.place_id == place_id)
+    ).first()
+    
+    
+    if not place:
+        raise HTTPException(status_code=404, detail="Place not found")
     # Check if bookmark already exists
     bookmark = session.exec(
         select(Bookmark).where(
