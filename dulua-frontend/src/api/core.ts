@@ -18,6 +18,7 @@ export interface IPlace {
     latitude: string
     longitude: string
     description: string
+    featured: boolean
     featured_image_main: string
     featured_image_secondary: string
     category: string[]

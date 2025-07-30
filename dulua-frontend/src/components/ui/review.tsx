@@ -82,28 +82,6 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
             fileInputRef.current.value = "" // Clear file input manually
         }
     }
-    // const handleSubmit = async () => {
-    //     console.log("hello")
-    //     try {
-    //         const timestamp = new Date().toISOString()
-
-    //         const data = await sendReview(
-    //             {
-    //                 comment,
-    //                 rating: stars,
-    //                 cleanliness: leaf,
-    //                 timestamp,
-    //                 place_id: place_id,
-    //                 images,
-    //             },
-    //             token as string
-    //         )
-
-    //         resetReviewForm()
-    //     } catch (err) {
-    //         console.error("Failed to send review:", err)
-    //     }
-    // }
 
     const handleSubmit = async () => {
         const formData = new FormData()
@@ -116,7 +94,7 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
 
         try {
             await addReview(formData).unwrap()
-            // Optionally show toast or reset form
+
             setStars(1)
             setLeaf(1)
             setComment("")
@@ -212,7 +190,7 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                 height={32}
                                 src="/default.png"
                                 alt={review.name}
-                                className=" h-1/2 w-16 object-cover rounded-md"
+                                className="  w-auto h-full object-cover rounded-xl"
                             />
                             <div>
                                 <p className="font-semibold text-gray-900 w-full">

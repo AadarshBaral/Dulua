@@ -13,6 +13,9 @@ interface Props {
 }
 
 import { Metadata } from "next"
+import MapRenderer from "@components/ui/MapRenderer"
+import useCurrentLocation, { ILocation } from "@hooks/useCurrentLocation"
+import MapLoader from "@components/ui/MapLoader"
 
 export async function generateMetadata({
     params,
@@ -20,6 +23,7 @@ export async function generateMetadata({
     params: { place_detail: string }
 }): Promise<Metadata> {
     const { place_detail } = params
+
     const placeData = await getPlace(place_detail)
 
     return {
@@ -63,7 +67,7 @@ export default async function PlaceDetail({ params }: Props) {
             subtitle: "Discover the beauty!",
         },
     ]
-
+    console.log("heee", placeData)
     return (
         <div className="px-8 py-8 max-w-6xl mx-20">
             {/* Breadcrumb / Page Title */}
@@ -114,8 +118,22 @@ export default async function PlaceDetail({ params }: Props) {
                 </Tab>
 
                 <Tab key="map" title="Map">
-                    <div className="mb-8">
-                        <h3 className="font-medium mb-2">Map</h3>
+                    <div className="mb-8 ">
+                        <MapLoader
+                            sidebar={false}
+                            places={[
+                                {
+                                    name: placeData?.name as string,
+                                    category: "place",
+                                    lat: parseInt(
+                                        placeData?.latitude as string
+                                    ),
+                                    lng: parseInt(
+                                        placeData?.longitude as string
+                                    ),
+                                },
+                            ]}
+                        />
                     </div>
                 </Tab>
 

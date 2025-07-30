@@ -248,8 +248,9 @@ async def get_review(request: Request, place_id: UUID, session: Session = Depend
 
 
 @router.get("/all_places", response_model=List[PublicPlace])
-async def all_places(session: Session = Depends(get_session)):
+async def all_places(request: Request, session: Session = Depends(get_session)):
     places = session.exec(select(Place)).all()
+    baseurl = str(request.base_url).rstrip("/")
     print(places)
     if not places:
         raise HTTPException(status_code=400, detail="No places found")
@@ -282,8 +283,8 @@ async def all_places(session: Session = Depends(get_session)):
             description=geo_location.description,
             category=categories,
             featured=place.featured,
-            featured_image_main=place.featured_image_main,
-            featured_image_secondary=place.featured_image_secondary
+            featured_image_main=f"{baseurl}/city/images/places/{place.featured_image_main}",
+            featured_image_secondary=f"{baseurl}/city/images/places/{place.featured_image_secondary}",
         )
 
         place_results.append(place_result)
