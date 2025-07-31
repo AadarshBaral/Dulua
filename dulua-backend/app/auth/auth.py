@@ -11,6 +11,8 @@ from passlib.context import CryptContext
 from app.session import get_session
 from app.config import settings
 from .schema import Token, TokenData, UserCreate, VerifyOtp
+from app.core.userprofile.models import UserProfile
+from app.dependencies import generate_handle
 router = APIRouter()
 app = FastAPI()
 
@@ -174,5 +176,16 @@ def verify_otp(otp: VerifyOtp, session: Session = Depends(get_session)):
     session.delete(pending)
     session.commit()
     session.refresh(user)
+    handle=generate_handle(user.name)
+    user_profile = UserProfile(
+        userdb_id=user.id,
+        handle=handle,
+        image=None,  # or default image url/path if you want
+        contribution=0,
+        green_points=0
+    )
+    session.add(user_profile)
+    session.commit()
+
 
     return {"message": "OTP verified"}

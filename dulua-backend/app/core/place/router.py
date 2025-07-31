@@ -7,13 +7,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
 from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
-from .models import Category, Geolocation, ImageData, Place,  Review
-from .schema import CategoryCreate, CategoryEnum, CategoryRead, PublicPlace, ReviewPublic
+from .models import Category, Geolocation, ImageData, Place,  Review,Bookmark
+from .schema import CategoryCreate, CategoryEnum, CategoryRead, PublicPlace, ReviewPublic,BookmarkRequest
 from app.core.city.models import City, Geolocation
 from pathlib import Path
 import shutil
 from fastapi.responses import JSONResponse
 from fastapi import Request
+from app.core.userprofile.models import UserProfile
+from app.dependencies import get_my_profile
+
 router = APIRouter()
 UPLOAD_DIR = Path("uploads/reviews")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
@@ -290,3 +293,44 @@ async def all_places(request: Request, session: Session = Depends(get_session)):
         place_results.append(place_result)
 
     return place_results
+
+
+
+
+
+@router.post("/bookmark/")
+def toggle_bookmark(
+    data:BookmarkRequest,
+    session: Session = Depends(get_session),
+    current_user: UserProfile = Depends(get_my_profile),
+):
+    place_id=data.place_id
+    place = session.exec(
+    select(Place).where(Place.place_id == place_id)
+    ).first()
+    
+    
+    if not place:
+        raise HTTPException(status_code=404, detail="Place not found")
+    # Check if bookmark already exists
+    bookmark = session.exec(
+        select(Bookmark).where(
+            Bookmark.user_profile_id == current_user.id,
+            Bookmark.place_id == place_id
+        )
+    ).first()
+
+    if bookmark:
+        # Bookmark exists, remove it
+        session.delete(bookmark)
+        session.commit()
+        return {"message": "Bookmark removed"}
+    else:
+        # Add new bookmark
+        new_bookmark = Bookmark(
+            user_profile_id=current_user.id,
+            place_id=place_id
+        )
+        session.add(new_bookmark)
+        session.commit()
+        return {"message": "Bookmark added"}
