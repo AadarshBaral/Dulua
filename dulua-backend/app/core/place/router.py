@@ -1,4 +1,5 @@
 from datetime import datetime
+from email.mime import image
 from app.dependencies import get_userID_from_token
 import uuid
 from sqlmodel import select, Session  # type: ignore
@@ -17,7 +18,7 @@ from fastapi.responses import JSONResponse
 from fastapi import Request
 from app.core.userprofile.models import UserProfile
 from app.dependencies import get_my_profile
-
+from app.core.trash_detection.trash_dep import detect_trash
 router = APIRouter()
 UPLOAD_DIR = Path("uploads/reviews")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
@@ -175,9 +176,9 @@ async def add_review(
     except ValueError:
         raise HTTPException(
             status_code=400, detail="Invalid timestamp format. Must be ISO 8601.")
-    statement_user = select(UserDB).where(UserDB.id == UUID(user_id))
+    statement_user = select(UserDB).where(UserDB.id == user_id)
     existing_user = session.exec(statement_user).first()
-    print("lskjf", existing_user)
+
     # ✅ Save review
     review = Review(
         place_id=place_uuid,
@@ -190,6 +191,7 @@ async def add_review(
     session.add(review)
     session.commit()
     session.refresh(review)
+    detection_results = []
 
     # ✅ Validate and save images
     for image in images:
@@ -208,16 +210,21 @@ async def add_review(
         new_filename = f"{uuid.uuid4()}.{ext}"
         file_path = UPLOAD_DIR / new_filename
 
+        image_bytes = await image.read()
+
         with file_path.open("wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
+            buffer.write(image_bytes)
 
         img_data = ImageData(
             image=new_filename,
             review_id=review.review_id,
             place_id=review.place_id
         )
+        print("added images in db", img_data.image_id)
         session.add(img_data)
 
+        detection_result = await detect_trash(new_filename, image_bytes)
+        detection_results.append(detection_result)
     session.commit()
 
     return JSONResponse(
@@ -231,12 +238,20 @@ async def add_review(
 @router.get("/get_reviews/{place_id}", response_model=list[ReviewPublic])
 async def get_review(request: Request, place_id: UUID, session: Session = Depends(get_session)):
     baseurl = str(request.base_url).rstrip("/")
-    review = session.exec(select(Review).where(Review.place_id == place_id))
-    images = session.exec(select(ImageData).where(
-        ImageData.place_id == place_id))
+
+    # Get all reviews and images related to the place
+    reviews_result = session.exec(
+        select(Review).where(Review.place_id == place_id))
+    images = list(session.exec(
+        select(ImageData).where(ImageData.place_id == place_id)))
 
     reviews = []
-    for rev in review:
+
+    for rev in reviews_result:
+        review_images = [
+            f"{baseurl}/city/images/reviews/{img.image}"
+            for img in images if img.review_id == rev.review_id
+        ]
 
         review_data = ReviewPublic(
             place_id=rev.place_id,
@@ -245,8 +260,7 @@ async def get_review(request: Request, place_id: UUID, session: Session = Depend
             cleanliness=rev.cleanliness,
             comment=rev.comment,
             timestamp=rev.timestamp,
-            images=[f"{baseurl}/images/reviews/{ImageData(**img.dict()).image}"
-                    for img in images if img.review_id == rev.review_id]
+            images=review_images
         )
         reviews.append(review_data)
 

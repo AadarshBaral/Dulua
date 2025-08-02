@@ -12,6 +12,7 @@ import { RootState } from "store/store"
 import { sendReview } from "@api/core"
 import { IoMdClose } from "react-icons/io"
 import { useAddReviewMutation, useGetReviewsQuery } from "store/fetchReviews"
+import { cn } from "@lib/utils"
 
 const reviews = [
     {
@@ -58,7 +59,7 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
         const files: File[] = Array.from(event.target.files)
         setImages((prev) => [...prev, ...files])
     }
-
+    console.log("here is data", reviews)
     const removeImage = (indexToRemove: number) => {
         setImages((prev) => prev.filter((_, index) => index !== indexToRemove))
     }
@@ -124,7 +125,7 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
         },
         {} as Record<number, number>
     )
-    console.log(reviews)
+    console.log("hey", reviews)
 
     return (
         <section className="max-w-6xl mx-auto px-4 py-10">
@@ -195,13 +196,13 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                         key={index}
                         className="flex  gap-32 border-b-2 border-gray-100  py-12 x"
                     >
-                        <div className="flex w-1/3 gap-4  ">
+                        <div className="flex w-1/3 gap-4   ">
                             <Image
                                 width={32}
                                 height={32}
                                 src="/default.png"
                                 alt={review.name}
-                                className="  w-auto h-full object-cover rounded-xl"
+                                className="  w-16 h-16 object-cover rounded-xl"
                             />
                             <div>
                                 <p className="font-semibold text-gray-900 w-full">
@@ -258,10 +259,31 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                     }
                                 </span>
                             </div>
-
-                            <p className="text-sm text-gray-700 mt-2 whitespace-pre-line">
-                                {review.comment}
-                            </p>
+                            <div className="cont flex flex-col gap-4 w-fit">
+                                <p className="text-sm text-gray-700 mt-2 whitespace-pre-line">
+                                    {review.comment}
+                                </p>
+                                <div
+                                    className={cn(
+                                        "cont grid grid-cols-3 items-start justify-items-start  gap-2"
+                                    )}
+                                >
+                                    {review.images.length > 0 &&
+                                        review.images.map((image, index) => {
+                                            console.log("crrr", image)
+                                            return (
+                                                <Image
+                                                    key={index}
+                                                    src={image}
+                                                    width={100}
+                                                    height={100}
+                                                    className="w-32 h-32 rounded-xl object-cover border-2 border-gray-100 p-2 "
+                                                    alt="image"
+                                                />
+                                            )
+                                        })}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ))}

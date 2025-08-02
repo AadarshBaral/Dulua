@@ -35,7 +35,7 @@ const WeatherInfo = () => {
         <div className="flex items-center gap-2 text-lg">
             <span className="font-semibold">
                 {weather?.current?.temp_c !== undefined
-                    ? weather?.current?.temp_c + 6
+                    ? weather?.current?.temp_c
                     : "~"}
                 °C
             </span>
