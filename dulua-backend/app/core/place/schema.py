@@ -66,7 +66,7 @@ class PlaceAdd(GeolocationCreate):
 
 class ReviewCreate(BaseModel):
     place_id: UUID
-    tourist_id: UUID
+    username: str
     rating: float
     cleanliness: float
     comment: str

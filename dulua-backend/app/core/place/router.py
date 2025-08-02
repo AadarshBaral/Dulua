@@ -7,8 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
 from app.session import get_session
 from fastapi import Form, HTTPException, UploadFile, File, APIRouter, Depends
-from .models import Category, Geolocation, ImageData, Place,  Review,Bookmark
-from .schema import CategoryCreate, CategoryEnum, CategoryRead, PublicPlace, ReviewPublic,BookmarkRequest
+from .models import Category, Geolocation, ImageData, Place,  Review, Bookmark
+from app.auth.models import UserDB
+from .schema import CategoryCreate, CategoryEnum, CategoryRead, PublicPlace, ReviewPublic, BookmarkRequest
 from app.core.city.models import City, Geolocation
 from pathlib import Path
 import shutil
@@ -174,11 +175,13 @@ async def add_review(
     except ValueError:
         raise HTTPException(
             status_code=400, detail="Invalid timestamp format. Must be ISO 8601.")
-
+    statement_user = select(UserDB).where(UserDB.id == UUID(user_id))
+    existing_user = session.exec(statement_user).first()
+    print("lskjf", existing_user)
     # ✅ Save review
     review = Review(
         place_id=place_uuid,
-        tourist_id=UUID(user_id),
+        username=existing_user.name,
         rating=rating,
         cleanliness=cleanliness,
         comment=comment,
@@ -237,7 +240,7 @@ async def get_review(request: Request, place_id: UUID, session: Session = Depend
 
         review_data = ReviewPublic(
             place_id=rev.place_id,
-            tourist_id=rev.tourist_id,
+            username=rev.username,
             rating=rev.rating,
             cleanliness=rev.cleanliness,
             comment=rev.comment,
@@ -295,21 +298,17 @@ async def all_places(request: Request, session: Session = Depends(get_session)):
     return place_results
 
 
-
-
-
 @router.post("/bookmark/")
 def toggle_bookmark(
-    data:BookmarkRequest,
+    data: BookmarkRequest,
     session: Session = Depends(get_session),
     current_user: UserProfile = Depends(get_my_profile),
 ):
-    place_id=data.place_id
+    place_id = data.place_id
     place = session.exec(
-    select(Place).where(Place.place_id == place_id)
+        select(Place).where(Place.place_id == place_id)
     ).first()
-    
-    
+
     if not place:
         raise HTTPException(status_code=404, detail="Place not found")
     # Check if bookmark already exists

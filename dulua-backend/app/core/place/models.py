@@ -51,8 +51,7 @@ class Category(SQLModel, table=True):
 class Review(SQLModel, table=True):
     review_id: UUID = Field(default_factory=uuid.uuid4,
                             primary_key=True, nullable=False)
-    tourist_id: UUID = Field(default_factory=uuid.uuid4,
-                             primary_key=True, nullable=False)
+    username: str = Field(nullable=False)
     rating: float = Field(nullable=False)
     cleanliness: float = Field(nullable=False)
     comment: str = Field(nullable=False)
