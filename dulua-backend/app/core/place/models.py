@@ -5,10 +5,12 @@ import uuid
 from uuid import UUID
 from .schema import CategoryEnum, PublicPlace
 from app.core.city.models import Geolocation, City
+from app.core.userprofile.models import UserProfile
 
 if TYPE_CHECKING:
     from app.auth.models import UserDB
-
+    from app.core.userprofile.models import UserProfile
+    from app.core.place.models import Place
 
 class PlaceCategoryLink(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid.uuid4,
@@ -33,6 +35,8 @@ class Place(SQLModel, table=True):
     featured: bool = Field(default=False, nullable=False)
     featured_image_main: str = Field(nullable=False)
     featured_image_secondary: str = Field(nullable=True)
+    
+    bookmarks: List["Bookmark"] = Relationship(back_populates="place")
 
 
 # cateogry place, m-m relationship
@@ -64,3 +68,12 @@ class ImageData(SQLModel, table=True):
     place_id: UUID = Field(nullable=False)
     review_id: UUID = Field(foreign_key="review.review_id", nullable=False)
     review: Optional["Review"] = Relationship(back_populates="images")
+
+
+class Bookmark(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_profile_id: UUID = Field(foreign_key="userprofile.id")
+    place_id: UUID = Field(foreign_key="place.place_id")
+
+    user_profile: UserProfile = Relationship(back_populates="bookmarks")
+    place: Place = Relationship(back_populates="bookmarks")
