@@ -1,4 +1,4 @@
-from fastapi import Header, HTTPException, Request,Depends
+from fastapi import Header, HTTPException, Request, Depends
 import jwt
 from sympy import im
 from typing_extensions import Annotated
@@ -72,7 +72,8 @@ def get_email_from_token(request: Request):
 
 def get_userID_from_token(request: Request):
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer"):
+    # not Bearer please. use bearer
+    if not auth_header or not auth_header.startswith("bearer"):
         raise HTTPException(status_code=401, detail="Invalid auth header")
 
     token = auth_header.split(" ")[1]
@@ -99,8 +100,8 @@ def get_my_profile(
 
 
 def generate_handle(name: str) -> str:
-    
+
     first_name = name.strip().split()[0].lower()
-   
+
     random_digits = ''.join(random.choices(string.digits, k=4))
     return f"@{first_name}{random_digits}"
