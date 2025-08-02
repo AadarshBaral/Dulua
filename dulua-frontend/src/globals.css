@@ -195,3 +195,181 @@
   border-radius: 8px;
   margin-bottom: 10px;
 }
+
+/* Add these CSS styles to fix markdown rendering */
+
+.markdown {
+  line-height: 1.6;
+  color: #374151;
+}
+
+/* Headers */
+.markdown h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem 0;
+  color: #111827;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.markdown h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.75rem 0;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.markdown h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  color: #374151;
+}
+
+/* Paragraphs */
+.markdown p {
+  margin: 0.75rem 0;
+  text-align: justify;
+}
+
+/* Lists */
+.markdown ul {
+  margin: 1rem 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.markdown li {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.markdown li::before {
+  content: "•";
+  color: #059669;
+  font-weight: bold;
+  position: absolute;
+  left: 0.5rem;
+  font-size: 1.2em;
+}
+
+/* Strong/Bold text */
+.markdown strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Links */
+.markdown a {
+  color: #059669;
+  text-decoration: underline;
+  text-decoration-color: #d1fae5;
+  text-underline-offset: 2px;
+  transition: all 0.2s ease;
+}
+
+.markdown a:hover {
+  color: #047857;
+  text-decoration-color: #059669;
+}
+
+/* Blockquotes */
+.markdown blockquote {
+  border-left: 4px solid #059669;
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  background-color: #f0fdf4;
+  font-style: italic;
+}
+
+/* Code */
+.markdown code {
+  background-color: #f3f4f6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875em;
+}
+
+.markdown pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.markdown pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* Tables */
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.markdown th,
+.markdown td {
+  border: 1px solid #d1d5db;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.markdown th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+/* HR */
+.markdown hr {
+  border: none;
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 2rem 0;
+}
+
+/* Images */
+.markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Specific fixes for your content */
+.markdown li strong {
+  color: #059669;
+  font-size: 1.1em;
+}
+
+/* FAQ styling */
+.markdown li:has(strong) {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown li:has(strong)+li {
+  margin-top: 0.25rem;
+  padding-left: 1.5rem;
+  font-style: italic;
+}
+
+/* Add spacing for sections */
+.markdown h2+p {
+  margin-top: 0.5rem;
+}
+
+.markdown h2+ul {
+  margin-top: 0.75rem;
+}

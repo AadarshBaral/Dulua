@@ -144,11 +144,11 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                     </h3>
                     <div className="cont flex gap-4">
                         <p className="text-2xl font-bold flex items-center">
-                            {rating.toFixed(1)}
+                            {rating ? rating.toFixed(1) : 0}
                             <FaStar className="ml-1 text-yellow-400" />
                         </p>
                         <p className="text-2xl font-bold flex items-center">
-                            {cleanliness.toFixed(1)}
+                            {cleanliness ? cleanliness.toFixed(1) : 0}
                             <FaLeaf className="ml-1 text-green-400" />
                         </p>
                     </div>

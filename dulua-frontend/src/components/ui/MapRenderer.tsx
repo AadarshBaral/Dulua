@@ -130,11 +130,11 @@ const RouteLine = ({
         //@ts-expect-error install leaflet-routing-machine
         const routingControl = L.Routing.control({
             waypoints: positions.map((pos) => L.latLng(pos)),
-            createMarker: () => null,
+
             addWaypoints: false,
             show: false,
             lineOptions: {
-                styles: [{ color: "#1976d2", weight: 6 }],
+                styles: [{ color: "#1976d2", weight: 10 }],
             },
             //@ts-ignore install leaflet-routing-machine
             router: L.Routing.osrmv1({
@@ -154,13 +154,13 @@ const RouteLine = ({
                             latLng: step.latLng,
                             distance: step.distance,
                         })
-
-                        // Optional: Step marker
-                        L.circleMarker(step.latLng, {
-                            radius: 32,
-                            color: "red",
-                            fillColor: "red",
-                            fillOpacity: 1,
+                        L.marker(step.latLng, {
+                            icon: L.divIcon({
+                                className: "custom-div-icon",
+                                html: `<div style="background-color: red; width: 20px; height: 20px; border-radius: 50%;"></div>`,
+                                iconSize: [20, 20],
+                                iconAnchor: [30, 30],
+                            }),
                         }).addTo(map)
                     }
                 })

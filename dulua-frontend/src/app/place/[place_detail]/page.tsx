@@ -1,5 +1,7 @@
 import Review from "@components/ui/review"
-
+import ReactDom from "react-dom"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { FaStar } from "react-icons/fa"
 import Image from "next/image"
 import Tabs from "@components/ui/OutlineTabs"
@@ -52,8 +54,8 @@ export async function generateMetadata({
 
 export default async function PlaceDetail({ params }: Props) {
     const { place_detail } = await params
-    console.log(place_detail)
     const placeData = await getPlace(place_detail)
+    const markdown = `# Just a link: https://reactjs.com.`
 
     const images = [
         {
@@ -67,7 +69,6 @@ export default async function PlaceDetail({ params }: Props) {
             subtitle: "Discover the beauty!",
         },
     ]
-    console.log("heee", placeData)
     return (
         <div className="px-8 py-8 max-w-6xl mx-20">
             {/* Breadcrumb / Page Title */}
@@ -90,30 +91,13 @@ export default async function PlaceDetail({ params }: Props) {
             </div>
 
             <Tabs>
-                <Tab key="about" title="About">
-                    <div className="mb-8">
-                        <h3 className="font-medium mb-2">About </h3>
-                        <p className="text-gray-700 leading-relaxed">{}</p>
-                        <p className="text-gray-600 text-sm">
-                            {placeData?.description}
-                        </p>
-                    </div>
-                </Tab>
-
                 <Tab key="details" title="Details">
                     <div className="mb-8">
-                        <h3 className="font-medium mb-2">Details</h3>
-                        <ul className="list-disc pl-5 text-gray-700 space-y-1">
-                            <li>Open Hours: 9:00 AM – 6:00 PM daily</li>
-                            <li>
-                                Entry Fee: NPR 100 (Local), NPR 500 (Tourists)
-                            </li>
-                            <li>
-                                Guided Tours: Available in English and Nepali
-                            </li>
-                            <li>Best Time to Visit: October – April</li>
-                            <li>Contact: +977-9800000000</li>
-                        </ul>
+                        <ReactMarkdown
+                            className="markdown prose prose-lg max-w-none"
+                            children={placeData?.description as string}
+                            remarkPlugins={[remarkGfm]}
+                        />
                     </div>
                 </Tab>
 
