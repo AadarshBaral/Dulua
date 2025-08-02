@@ -110,10 +110,15 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
             (accumulator, review) => accumulator + review.rating,
             0
         ) / reviews.length
+    const cleanliness =
+        reviews.reduce(
+            (accumulator, review) => accumulator + review.cleanliness,
+            0
+        ) / reviews.length
 
     const ratingDistribution = reviews.reduce(
         (acc, review) => {
-            const r = review.rating
+            const r = review.cleanliness
             acc[r] = (acc[r] || 0) + 1
             return acc
         },
@@ -134,12 +139,18 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                 <div className="line h-32  bg-gray-200 w-[1px]"></div>
                 <div>
                     <h3 className="text-foreground text-md font-bold">
-                        Average Rating
+                        Average Rating & Cleanliness
                     </h3>
-                    <p className="text-2xl font-bold flex items-center">
-                        {rating.toFixed(1)}
-                        <FaStar className="ml-1 text-yellow-400" />
-                    </p>
+                    <div className="cont flex gap-4">
+                        <p className="text-2xl font-bold flex items-center">
+                            {rating.toFixed(1)}
+                            <FaStar className="ml-1 text-yellow-400" />
+                        </p>
+                        <p className="text-2xl font-bold flex items-center">
+                            {cleanliness.toFixed(1)}
+                            <FaLeaf className="ml-1 text-green-400" />
+                        </p>
+                    </div>
                 </div>
                 <div className="line h-32  bg-gray-200 w-[1px]"></div>
                 <div className="space-y-1 w-full mt-4 sm:mt-0 sm:w-auto">
@@ -153,7 +164,7 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                 className="flex items-center gap-2 text-sm"
                             >
                                 <span className="w-4">{star}</span>
-                                <FaStar className="text-yellow-400" />
+                                <FaLeaf className="text-green-400" />
                                 <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
                                     <div
                                         className="h-2 bg-green-400"
@@ -194,20 +205,38 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                             />
                             <div>
                                 <p className="font-semibold text-gray-900 w-full">
-                                    {review.name}
+                                    {review.username}
                                 </p>
-                                <div className="text-sm text-gray-500">
-                                    <p>
-                                        Total Reviews:{" "}
-                                        <span className="font-bold">200</span>
-                                    </p>
+                                <div className="cont flex gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                        <FaStar
+                                            key={i}
+                                            className={
+                                                i < review.rating
+                                                    ? "text-yellow-400"
+                                                    : "text-gray-300"
+                                            }
+                                        />
+                                    ))}
+                                </div>
+                                <div className="cont flex gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                        <FaStar
+                                            key={i}
+                                            className={
+                                                i < review.cleanliness
+                                                    ? "text-green-400"
+                                                    : "text-gray-300"
+                                            }
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         </div>
                         <div className="cont w-2/3">
                             <div className="flex items-center gap-2 text-sm">
                                 {/* Stars */}
-                                {[...Array(5)].map((_, i) => (
+                                {/* {[...Array(5)].map((_, i) => (
                                     <FaStar
                                         key={i}
                                         className={
@@ -218,13 +247,10 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                     />
                                 ))}
 
-                                {/* Rating Count */}
-                                <span className="text-gray-600 text-xs ml-2">
-                                    {review.rating} out of 5
-                                </span>
+                              */}
 
                                 {/* Date */}
-                                <span className="text-gray-400 text-xs ml-4">
+                                <span className="text-gray-400 text-xs 4">
                                     {
                                         new Date(review.timestamp)
                                             .toISOString()

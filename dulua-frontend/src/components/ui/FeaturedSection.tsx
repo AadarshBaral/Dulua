@@ -6,7 +6,8 @@ import Link from "next/link"
 import React from "react"
 
 const FeaturedSection = ({ places }: { places: IPlace[] }) => {
-    const featured = places.filter((p) => p.featured)
+    console.log("hey", places)
+    const featured = Object.values(places).filter((p) => p.featured)
 
     const firstCard = featured[0] ?? {
         name: "Bat Cave",
