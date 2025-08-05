@@ -5,6 +5,7 @@ from typing import List
 from app.core.userprofile.models import UserProfile
 from app.core.place.models import Bookmark,Place
 from app.session import get_session
+from .schema import UpdateContributionRequest,UpdateGreenPointsRequest
 
 router = APIRouter( tags=["User Profile"])
 
@@ -36,3 +37,42 @@ def get_user_profile(user_profile_id: UUID, session: Session = Depends(get_sessi
             for place in places
         ]
     }
+
+@router.put("/userprofile/update-contribution")
+def update_user_profile_contribution(
+    update_data: UpdateContributionRequest,
+    session: Session = Depends(get_session)
+):
+    profile = session.exec(
+        select(UserProfile).where(UserProfile.id == update_data.user_profile_id)
+    ).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+
+    profile.contribution = update_data.contribution
+    session.add(profile)
+    session.commit()
+    session.refresh(profile)
+
+    return {"message": "Contribution updated successfully", "contribution": profile.contribution}
+
+
+@router.put("/userprofile/update-greenpoints")
+def update_user_profile_green_points(
+    update_data: UpdateGreenPointsRequest,
+    session: Session = Depends(get_session)
+):
+    profile = session.exec(
+        select(UserProfile).where(UserProfile.id == update_data.user_profile_id)
+    ).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+
+    profile.green_points = update_data.green_points
+    session.add(profile)
+    session.commit()
+    session.refresh(profile)
+
+    return {"message": "Green points updated successfully", "green_points": profile.green_points}

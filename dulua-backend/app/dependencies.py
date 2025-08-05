@@ -72,7 +72,7 @@ def get_email_from_token(request: Request):
 
 def get_userID_from_token(request: Request):
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer"):
+    if not auth_header or not auth_header.lower().startswith("bearer"):
         raise HTTPException(status_code=401, detail="Invalid auth header")
 
     token = auth_header.split(" ")[1]
