@@ -26,7 +26,11 @@ def get_user_profile(user_profile_id: UUID, session: Session = Depends(get_sessi
 
     return {
         "id": profile.id,
+        "handle": profile.handle,
+        "name": profile.name,
+        "email": profile.email,
         "image": profile.image,
+        "country": profile.country,
         "contribution": profile.contribution,
         "green_points": profile.green_points,
         "bookmarked_places": [

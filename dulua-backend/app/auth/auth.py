@@ -180,7 +180,9 @@ def verify_otp(otp: VerifyOtp, session: Session = Depends(get_session)):
     user_profile = UserProfile(
         userdb_id=user.id,
         handle=handle,
-        image=None,  # or default image url/path if you want
+        name=user.name,
+        email=user.email,
+        image=None,  
         contribution=0,
         green_points=0
     )
