@@ -15,8 +15,8 @@ const inter = Manrope({
 })
 
 export const metadata: Metadata = {
-    title: "Dulua",
-    description: "Pokhara | Travel Guide",
+    title: "",
+    description: "",
 }
 
 export default function RootLayout({

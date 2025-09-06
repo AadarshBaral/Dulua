@@ -1,3 +1,4 @@
+import { loginUserFunc } from "@api/auth"
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import { RootState } from "store/store"
 
@@ -47,28 +48,22 @@ export const loginUser = createAsyncThunk<
     { rejectValue: string }
 >("auth/loginUser", async ({ username, password }, thunkAPI) => {
     try {
-        const body = new URLSearchParams()
-        body.append("username", username)
-        body.append("password", password)
-
-        const res = await fetch("http://localhost:8000/auth/token", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: body.toString(),
+        // Use the loginUserFunc imported function
+        const { status, data } = await loginUserFunc({
+            data: { username, password }, // Pass username and password to loginUserFunc
         })
 
-        const data = await res.json()
-
-        if (!res.ok) {
+        // Check if the response status is not OK
+        if (status !== 200) {
             return thunkAPI.rejectWithValue(data.detail || "Login failed")
         }
 
+        // Check if the token is missing from the response
         if (!data.access_token) {
             return thunkAPI.rejectWithValue("Token not found in response")
         }
 
+        // Return the tokens if everything is successful
         return { access_token: data.access_token, token_type: data.token_type }
     } catch (err) {
         console.error("Login error", err)

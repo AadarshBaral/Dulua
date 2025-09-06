@@ -5,12 +5,25 @@ import { FaLeaf } from "react-icons/fa6"
 import SliderComponent from "@components/ui/SliderComponent"
 import PersonalInformationForm from "./PersonalInformation"
 import PlaceCard from "./PlaceCard"
+import { useAppDispatch } from "@lib/hooks"
+import { logout } from "store/appSlice/authSlice"
+import { redirect, RedirectType } from "next/navigation"
 
 const UserProfileTabs = ({ user, places }: { user: any; places: any[] }) => {
     const [activeTab, setActiveTab] = useState("favorite")
+    const dispatch = useAppDispatch()
 
     return (
         <div className="flex flex-col mx-4 my-4">
+            <p
+                className="self-end text-red-500 cursor-pointer"
+                onClick={() => {
+                    dispatch(logout())
+                    redirect("/")
+                }}
+            >
+                Logout
+            </p>
             {/* Top Section */}
             <div className="flex space-x-4 p-3 h-auto">
                 <img

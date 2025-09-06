@@ -36,9 +36,8 @@ function LoginForm({
     )
 
     const onSubmit = async (data: LoginFormInputs) => {
-        console.log("data", data)
         const result = await dispatch(loginUser(data))
-        console.log(result, "dam")
+
         if (loginUser.fulfilled.match(result)) {
             await dispatch(
                 fetchUserProfile({

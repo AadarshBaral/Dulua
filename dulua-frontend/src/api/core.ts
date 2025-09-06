@@ -65,13 +65,11 @@ export const getPlace = async (place_id: string): Promise<IPlace | null> => {
 }
 export async function sendReview(data: ReviewPayload, token: string) {
     const formData = new FormData()
-    console.log("here is submitted data", data)
     formData.append("comment", data.comment)
     formData.append("rating", data.rating.toString())
     formData.append("cleanliness", data.cleanliness.toString())
     formData.append("timestamp", data.timestamp)
     formData.append("place_id", data.place_id)
-    console.log("its token", token)
     data.images.forEach((file) => {
         formData.append("images", file as any, file.name)
     })

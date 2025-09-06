@@ -1,7 +1,8 @@
+from .dependencies import role_required
 from fastapi.staticfiles import StaticFiles
 from app.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from .lib.tags import tags_metadata
 from .auth import auth
 from .core.trash_detection import router as detect_trash
@@ -44,9 +45,10 @@ app.include_router(city_router.router, prefix="/city", tags=["City"])
 app.include_router(place_router.router, prefix="/place", tags=["Place"])
 app.include_router(local_guide_router.router,
                    prefix="/local_guide", tags=["Local Guide"])
-app.include_router(user_perofile_router.router,prefix="/user",tags=["Userproile"])
+app.include_router(user_perofile_router.router,
+                   prefix="/user", tags=["Userproile"])
 
 
 @app.get("/")
-async def root():
+async def root(role: str = Depends(role_required("admin"))):
     return {"message": "Hello Dulua"}

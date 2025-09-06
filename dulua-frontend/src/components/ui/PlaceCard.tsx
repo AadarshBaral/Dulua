@@ -13,7 +13,6 @@ const PlaceCard = ({ place }: { place: IPlace }) => {
     let isBookmarked = false
     const router = useRouter()
     const [imgSrc, setImgSrc] = useState(place.featured_image_main)
-    console.log("hahaha", place)
     return (
         <div
             onClick={() => router.push(`/place/${place.place_id}`)}

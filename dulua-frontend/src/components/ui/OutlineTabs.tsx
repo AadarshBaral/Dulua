@@ -17,7 +17,7 @@ const Tabs = ({ children }: TabsProps) => {
     const router = useRouter()
     const ref = useRef<any>(null)
     const searchParams = useSearchParams()
-    console.log("tab is being rendererd", children)
+
     useEffect(() => {
         const tabKey = searchParams?.get("tab")
         if (!tabKey) return
@@ -48,7 +48,6 @@ const Tabs = ({ children }: TabsProps) => {
                 >
                     {children.map((child, index) => {
                         const isActive = index === active
-                        console.log("hellochild", child)
                         return (
                             <a
                                 href="#"

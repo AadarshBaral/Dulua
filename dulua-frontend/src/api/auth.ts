@@ -55,21 +55,24 @@ export const verifyOtp = async ({
     }
 }
 
-export const loginUseFunc = async ({ data }: { data: LoginFormInputs }) => {
+import { setCookie } from "nookies"
+
+export const loginUserFunc = async ({ data }: { data: LoginFormInputs }) => {
     try {
-        const response = await fetch("http://localhost:8000/auth/login", {
+        const body = new URLSearchParams()
+        body.append("username", data.username)
+        body.append("password", data.password)
+
+        const response = await fetch("http://localhost:8000/auth/token", {
             method: "POST",
+            credentials: "include",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: JSON.stringify({
-                username: data.username,
-                password: data.password,
-            }),
+            body: body.toString(),
         })
 
         const json = await response.json()
-
         return {
             status: response.status,
             data: json,

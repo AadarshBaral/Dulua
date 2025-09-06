@@ -39,7 +39,6 @@ const VerifyCodeForm = ({
         const email = localStorage.getItem("email")
         if (email != null) {
             const response = await verifyOtp({ email, otp: data.code })
-            console.log(response)
             if (response.status === 200) {
                 changePageState("login")
             } else {

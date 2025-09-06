@@ -3,7 +3,7 @@ from sqlmodel import Session, select  # type: ignore
 from .models import PendingRegistration,  UserDB
 from datetime import datetime, timedelta, timezone
 from ..lib.send_email import send_email
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, Response, status
 import jwt
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -19,7 +19,7 @@ app = FastAPI()
 
 SECRET_KEY = settings.APP_SECRET
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRATION_MINUTES = 5400
+ACCESS_TOKEN_EXPIRATION_MINUTES = 10
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -88,7 +88,7 @@ async def get_current_active_user(
 
 
 @router.post("/token")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session=Depends(get_session)) -> Token:
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], response: Response, session=Depends(get_session)) -> Token:
 
     user = authenticate_user(
         form_data.username, form_data.password, session)
@@ -106,6 +106,17 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
     access_token = create_access_token(
         data={"sub": user.name, "email": user.email, "role": user.role, "userId": userid}, expires_delta=access_token_expires
     )
+    response.set_cookie(
+        key="token",
+        value=access_token,
+        max_age=access_token_expires,
+        path="/",
+        httponly=True,
+        secure=False,
+        samesite="lax",
+    )
+    print('cookie set')
+
     return Token(access_token=access_token, token_type="bearer")
 
 
@@ -176,7 +187,7 @@ def verify_otp(otp: VerifyOtp, session: Session = Depends(get_session)):
     session.delete(pending)
     session.commit()
     session.refresh(user)
-    handle=generate_handle(user.name)
+    handle = generate_handle(user.name)
     user_profile = UserProfile(
         userdb_id=user.id,
         handle=handle,
@@ -186,6 +197,5 @@ def verify_otp(otp: VerifyOtp, session: Session = Depends(get_session)):
     )
     session.add(user_profile)
     session.commit()
-
 
     return {"message": "OTP verified"}

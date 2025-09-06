@@ -109,10 +109,10 @@ export default async function PlaceDetail({ params }: Props) {
                                 {
                                     name: placeData?.name as string,
                                     category: "place",
-                                    lat: parseInt(
+                                    lat: parseFloat(
                                         placeData?.latitude as string
                                     ),
-                                    lng: parseInt(
+                                    lng: parseFloat(
                                         placeData?.longitude as string
                                     ),
                                 },

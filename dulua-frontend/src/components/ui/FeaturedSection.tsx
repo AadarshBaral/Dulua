@@ -6,7 +6,6 @@ import Link from "next/link"
 import React from "react"
 
 const FeaturedSection = ({ places }: { places: IPlace[] }) => {
-    console.log("hey", places)
     const featured = Object.values(places).filter((p) => p.featured)
 
     const firstCard = featured[0] ?? {
@@ -37,7 +36,6 @@ const FeaturedSection = ({ places }: { places: IPlace[] }) => {
                     <h3 className="font-semibold text-2xl mb-2">
                         {place.name}
                     </h3>
-                    <p className="text-sm">{place.description}</p>
                 </div>
             </div>
         )

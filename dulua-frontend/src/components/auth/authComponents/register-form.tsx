@@ -33,7 +33,6 @@ function RegisterForm({
     const onSubmit = async (data: RegisterFormInputs) => {
         setLoading(true)
         const response = await registerUser({ data })
-        console.log(response.status)
         localStorage.setItem("email", data.email)
         if (response.status === 200) {
             changePageState("verifyCode")

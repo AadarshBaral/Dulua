@@ -54,12 +54,11 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
     const [comment, setComment] = useState("")
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [images, setImages] = useState<File[]>([])
-    console.log("its palce id", place_id)
+
     const handleCameraCapture = (event) => {
         const files: File[] = Array.from(event.target.files)
         setImages((prev) => [...prev, ...files])
     }
-    console.log("here is data", reviews)
     const removeImage = (indexToRemove: number) => {
         setImages((prev) => prev.filter((_, index) => index !== indexToRemove))
     }
@@ -125,7 +124,6 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
         },
         {} as Record<number, number>
     )
-    console.log("hey", reviews)
 
     return (
         <section className="max-w-6xl mx-auto px-4 py-10">
@@ -270,7 +268,6 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                 >
                                     {review.images.length > 0 &&
                                         review.images.map((image, index) => {
-                                            console.log("crrr", image)
                                             return (
                                                 <Image
                                                     key={index}
@@ -421,6 +418,9 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                 onClick={handleSubmit}
                                 className="w-full bg-black text-white py-3 rounded-full text-sm font-medium hover:bg-gray-900 transition"
                             >
+                                {isLoading && (
+                                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-white"></span>
+                                )}
                                 Send Review
                             </Button>
                         </div>

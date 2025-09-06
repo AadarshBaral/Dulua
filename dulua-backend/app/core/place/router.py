@@ -1,6 +1,6 @@
 from datetime import datetime
 from email.mime import image
-from app.dependencies import get_userID_from_token
+from app.dependencies import get_userID_from_token, role_required
 import uuid
 from sqlmodel import select, Session  # type: ignore
 from typing import List, Optional
@@ -37,7 +37,8 @@ async def add_place(
     featured: bool = Form(False),
     featured_image_main: UploadFile = File(...),
     featured_image_secondary: Optional[UploadFile] = File(None),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    role: str = Depends(role_required("admin"))
 ):
     def save_image(image: UploadFile) -> str:
         if not image.content_type.startswith("image/"):
@@ -100,7 +101,7 @@ async def add_place(
 
 
 @router.post("/add_category")
-async def add_category(category: CategoryCreate, session: Session = Depends(get_session)):
+async def add_category(category: CategoryCreate, session: Session = Depends(get_session), role: str = Depends(role_required("admin"))):
     existing = session.query(Category).filter(
         Category.name == category.name).first()
     if existing:

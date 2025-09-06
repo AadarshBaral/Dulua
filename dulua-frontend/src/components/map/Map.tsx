@@ -7,7 +7,6 @@ import MapRenderer from "@components/ui/MapRenderer"
 
 export const MapLoader = () => {
     const { location } = useCurrentLocation()
-    console.log(location)
     // const Map = useMemo(
     //     () =>
     //         dynamic(() => import("@components/map/Map"), {
