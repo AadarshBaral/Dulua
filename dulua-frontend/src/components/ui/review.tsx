@@ -2,11 +2,23 @@
 
 import Image from "next/image"
 import React, { useEffect, useRef, useState } from "react"
-import { FaStar, FaShareAlt, FaPen, FaHeart, FaTrash } from "react-icons/fa"
+import {
+    FaStar,
+    FaShareAlt,
+    FaPen,
+    FaHeart,
+    FaTrash,
+    FaExclamationTriangle,
+} from "react-icons/fa"
 import { Button } from "./button"
 import { Pen } from "lucide-react"
 import { openModal } from "store/appSlice/modalStore"
-import { FaCross, FaLeaf } from "react-icons/fa6"
+import {
+    FaCross,
+    FaExclamation,
+    FaLeaf,
+    FaTriangleExclamation,
+} from "react-icons/fa6"
 import { useAppSelector } from "@lib/hooks"
 import { RootState } from "store/store"
 import { sendReview } from "@api/core"
@@ -257,10 +269,25 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                     }
                                 </span>
                             </div>
-                            <div className="cont flex flex-col gap-4 w-fit">
+                            <div className="cont flex flex-col gap-4 w-fit ">
                                 <p className="text-sm text-gray-700 mt-2 whitespace-pre-line">
                                     {review.comment}
                                 </p>
+                                <div className="trash-warn bg-yellow-50 border-2 border-yellow-200 rounded-full px-4 items-center py-1 flex flex-row  w-fit cursor-pointer hover:bg-yellow-100">
+                                    <FaExclamationTriangle className="text-yellow-500 mr-2" />
+
+                                    <p className="text-yellow-700 text-sm mr-1">
+                                        Image contains trash.
+                                    </p>
+                                    <p className=" text-sm font-bold text-yellow-700">
+                                        {"  "}
+                                        <span className="underline">
+                                            {" "}
+                                            Click{" "}
+                                        </span>{" "}
+                                        to view
+                                    </p>
+                                </div>
                                 <div
                                     className={cn(
                                         "cont grid grid-cols-3 items-start justify-items-start  gap-2"

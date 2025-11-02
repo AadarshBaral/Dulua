@@ -19,6 +19,7 @@ L.Icon.Default.mergeOptions({
 })
 
 export default function AddPlace() {
+    const token = localStorage.getItem("token") || ""
     const [cities, setCities] = useState<City[]>([])
     const [formData, setFormData] = useState({
         name: "",
@@ -60,6 +61,7 @@ export default function AddPlace() {
     const handleSubmit = async (e: any) => {
         e.preventDefault()
         const data = new FormData()
+        console.log("I tried to submit", formData)
         Object.entries(formData).forEach(([key, value]) => {
             if (Array.isArray(value)) value.forEach((v) => data.append(key, v))
             else data.append(key, value.toString())
@@ -72,7 +74,11 @@ export default function AddPlace() {
             const res = await fetch("http://localhost:8000/place/add_place", {
                 method: "POST",
                 body: data,
+                headers: {
+                    Authorization: `bearer ${token}`,
+                },
             })
+
             const result = await res.json()
             alert(result.message)
         } catch (err) {
