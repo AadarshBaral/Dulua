@@ -1,3 +1,4 @@
+import uuid
 from fastapi import UploadFile, File, APIRouter
 from typing import Annotated
 import numpy as np
@@ -30,8 +31,13 @@ async def detect_trash(image: Annotated[UploadFile, File(description="Input imag
     # Visualize the results
     annotated = results[0].plot()
 
-    # saving
-    output_path = os.path.join(BASE_DIR, "annotated_image.jpg")
+    original_name, ext = os.path.splitext(image.filename)
+    safe_name = "".join(
+        c for c in original_name if c.isalnum() or c in ("-", "_"))
+    unique_name = f"{safe_name}_{uuid.uuid4().hex[:8]}{ext}"
+
+    # Save output under the same directory
+    output_path = os.path.join(BASE_DIR, unique_name)
     cv2.imwrite(output_path, annotated)
 
     detected_class = set()

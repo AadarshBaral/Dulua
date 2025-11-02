@@ -28,6 +28,8 @@ app.mount("/city/images/reviews",
           StaticFiles(directory="uploads/reviews"), name="review_images")
 app.mount("/city/images/places",
           StaticFiles(directory="uploads/places"), name="places")
+app.mount("/city/images/reviews",
+          StaticFiles(directory="uploads/reviews"), name="review_images")
 
 
 app.add_middleware(

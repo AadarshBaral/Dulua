@@ -2,6 +2,7 @@ from datetime import datetime
 from email.mime import image
 from app.dependencies import get_userID_from_token, role_required
 import uuid
+import os
 from sqlmodel import select, Session  # type: ignore
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -190,28 +191,37 @@ async def add_review(
         datetime.fromisoformat(timestamp)
     except ValueError:
         raise HTTPException(
-            status_code=400, detail="Invalid timestamp format. Must be ISO 8601.")
-    statement_user = select(UserDB).where(UserDB.id == user_id)
-    existing_user = session.exec(statement_user).first()
+            status_code=400,
+            detail="Invalid timestamp format. Must be ISO 8601."
+        )
 
-    # ✅ Save review
+    # ✅ Get user info
+    user_stmt = select(UserDB).where(UserDB.id == user_id)
+    existing_user = session.exec(user_stmt).first()
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # ✅ Create new review
     review = Review(
         place_id=place_uuid,
         username=existing_user.name,
         rating=rating,
         cleanliness=cleanliness,
         comment=comment,
-        timestamp=timestamp
+        timestamp=timestamp,
+        trash_flag=0
     )
     session.add(review)
     session.commit()
     session.refresh(review)
+
+    # ✅ Begin processing images
+    trash_found = False
     detection_results = []
 
-    # ✅ Validate and save images
     for image in images:
-        if image.filename == "":
-            continue  # skip empty input
+        if not image.filename:
+            continue
 
         if not image.content_type.startswith("image/"):
             raise HTTPException(
@@ -222,61 +232,106 @@ async def add_review(
             raise HTTPException(
                 status_code=400, detail="Only JPG, JPEG, or PNG images are supported")
 
+        # ✅ Save uploaded image to disk
         new_filename = f"{uuid.uuid4()}.{ext}"
         file_path = UPLOAD_DIR / new_filename
-
         image_bytes = await image.read()
-
         with file_path.open("wb") as buffer:
             buffer.write(image_bytes)
 
+        # ✅ Always save the original uploaded image as review image
         img_data = ImageData(
-            image=new_filename,
+            image_path=new_filename,
             review_id=review.review_id,
-            place_id=review.place_id
+            place_id=review.place_id,
+            is_trash=False
         )
-        print("added images in db", img_data.image_id)
         session.add(img_data)
 
+        # ✅ Run YOLO detection
         detection_result = await detect_trash(new_filename, image_bytes)
         detection_results.append(detection_result)
+
+        detected_class = detection_result.get("detected_class", [])
+        annotated_path = detection_result.get("saved_path")
+        print("detected class for image", new_filename, detected_class)
+        # ✅ If trash detected, also save annotated image
+        if len(detected_class) > 0:
+            trash_found = True
+            trash_img_data = ImageData(
+                image_path=os.path.basename(annotated_path),
+                review_id=review.review_id,
+                place_id=review.place_id,
+                detected_class=", ".join(detected_class),
+                annotated_path=annotated_path,
+                is_trash=True
+            )
+            session.add(trash_img_data)
+
+    # ✅ If any image had trash
+    if trash_found:
+        review.trash_flag = 1
+
     session.commit()
+    session.refresh(review)
 
     return JSONResponse(
         status_code=201,
         content={
-            "message": "Review added successfully"
+            "message": "Review added successfully",
+            "review_id": str(review.review_id),
+            "trash_flag": review.trash_flag,
+            "detections": detection_results
         }
     )
 
 
 @router.get("/get_reviews/{place_id}", response_model=list[ReviewPublic])
-async def get_review(request: Request, place_id: UUID, session: Session = Depends(get_session)):
+async def get_reviews(request: Request, place_id: UUID, session=Depends(get_session)):
     baseurl = str(request.base_url).rstrip("/")
 
-    # Get all reviews and images related to the place
+    # ✅ Get all reviews for this place
     reviews_result = session.exec(
-        select(Review).where(Review.place_id == place_id))
+        select(Review).where(Review.place_id == place_id)
+    ).all()
+
+    # ✅ Get all images for that place
     images = list(session.exec(
-        select(ImageData).where(ImageData.place_id == place_id)))
+        select(ImageData).where(ImageData.place_id == place_id)
+    ))
 
     reviews = []
 
     for rev in reviews_result:
-        review_images = [
-            f"{baseurl}/city/images/reviews/{img.image}"
-            for img in images if img.review_id == rev.review_id
+        # Normal (non-trash) images
+        normal_images = [
+            f"{baseurl}/city/images/reviews/{img.image_path}"
+            for img in images
+            if img.review_id == rev.review_id and not img.is_trash
         ]
 
-        review_data = ReviewPublic(
-            place_id=rev.place_id,
-            username=rev.username,
-            rating=rev.rating,
-            cleanliness=rev.cleanliness,
-            comment=rev.comment,
-            timestamp=rev.timestamp,
-            images=review_images
-        )
+        # Trash images: return both URL + detected classes
+        trash_data = [
+            {
+                "image_url": f"{baseurl}/city/images/reviews/trash/{os.path.basename(img.annotated_path)}",
+                "detected_class": img.detected_class.split(", ") if img.detected_class else [],
+            }
+            for img in images
+            if img.review_id == rev.review_id and img.is_trash and img.annotated_path
+        ]
+
+        review_data = {
+            "place_id": rev.place_id,
+            "username": rev.username,
+            "rating": rev.rating,
+            "cleanliness": rev.cleanliness,
+            "comment": rev.comment,
+            "timestamp": rev.timestamp,
+            "trash_flag": rev.trash_flag,
+            "images": normal_images,
+            "trash_images": [t["image_url"] for t in trash_data],
+            "trash_data": trash_data,  # ✅ new field: includes both URL + class labels
+        }
         reviews.append(review_data)
 
     return reviews
