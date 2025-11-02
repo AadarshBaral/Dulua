@@ -71,19 +71,32 @@ async def add_place(
     session.commit()
     session.refresh(geo_location)
 
+    # ✅ Step 3: Handle Categories (create missing ones)
     existing_categories = session.exec(
         select(Category).where(Category.name.in_(category))
     ).all()
 
-    if not existing_categories:
-        raise HTTPException(
-            status_code=400, detail="No matching categories found")
+    existing_category_names = {c.name for c in existing_categories}
+    missing_categories = set(category) - existing_category_names
+
+    new_categories = []
+    for missing in missing_categories:
+        new_category = Category(name=missing)
+        session.add(new_category)
+        new_categories.append(new_category)
+
+    if new_categories:
+        session.commit()
+        for c in new_categories:
+            session.refresh(c)
+
+    all_categories = existing_categories + new_categories
 
     # ✅ Step 4: Create Place
     new_place = Place(
         city_id=city_id,
         geo_location_id=geo_location.geo_location_id,
-        categories=existing_categories,
+        categories=all_categories,
         featured=featured,
         featured_image_main=main_image_filename,
         featured_image_secondary=secondary_image_filename
@@ -97,6 +110,7 @@ async def add_place(
         "place_id": new_place.place_id,
         "main_image": main_image_filename,
         "secondary_image": secondary_image_filename,
+        "newly_created_categories": list(missing_categories)
     }
 
 

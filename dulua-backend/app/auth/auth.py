@@ -19,7 +19,7 @@ app = FastAPI()
 
 SECRET_KEY = settings.APP_SECRET
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRATION_MINUTES = 10
+ACCESS_TOKEN_EXPIRATION_MINUTES = 43200
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
