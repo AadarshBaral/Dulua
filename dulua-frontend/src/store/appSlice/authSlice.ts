@@ -2,14 +2,20 @@ import { loginUserFunc } from "@api/auth"
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import { RootState } from "store/store"
 
+interface IUser {
+    id: string
+    username: string
+    email: string
+    handle?: string
+}
+
 interface IAuthState {
     token: string | null
     tokenType: string | null
-    user: { username: string; email: string } | null
+    user: IUser | null
     loading: boolean
     error: string | null
 }
-
 const loadFromLocalStorage = (key: string): string | null => {
     if (typeof window !== "undefined") {
         return localStorage.getItem(key)
@@ -17,10 +23,7 @@ const loadFromLocalStorage = (key: string): string | null => {
     return null
 }
 
-const loadUserFromLocalStorage = (): {
-    username: string
-    email: string
-} | null => {
+const loadUserFromLocalStorage = (): IUser | null => {
     if (typeof window !== "undefined") {
         const userStr = localStorage.getItem("user")
         if (userStr) {
@@ -72,11 +75,12 @@ export const loginUser = createAsyncThunk<
 })
 
 export const fetchUserProfile = createAsyncThunk<
-    { username: string; email: string },
+    IUser,
     { token: string; tokenType: string },
     { rejectValue: string }
 >("auth/fetchUserProfile", async ({ token, tokenType }, thunkAPI) => {
     try {
+        console.log("trying ...")
         const res = await fetch("http://localhost:8000/auth/get-user", {
             method: "GET",
             headers: {
@@ -85,16 +89,19 @@ export const fetchUserProfile = createAsyncThunk<
         })
 
         const data = await res.json()
-
+        console.log("Fetched user data:", data)
         if (!res.ok) {
             return thunkAPI.rejectWithValue(
                 data.detail || "Failed to fetch user"
             )
         }
 
+        // return everything you need from backend
         return {
+            id: data.id,
             username: data.username,
             email: data.email,
+            handle: data.handle, // optional
         }
     } catch (err) {
         console.error("Fetch user error", err)

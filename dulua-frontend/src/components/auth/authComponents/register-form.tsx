@@ -11,7 +11,8 @@ import { Input } from "@components/ui/input"
 import { RegisterFormInputs, registerSchema } from "@lib/validations"
 import { Step } from "../authLayout"
 import { registerUser } from "@api/auth"
-
+import Image from "next/image"
+import AuthLogo from "@components/ui/authLogo"
 function RegisterForm({
     registerEnd,
     changePageState,
@@ -49,9 +50,7 @@ function RegisterForm({
                 className="flex flex-col gap-4 w-full"
             >
                 <div className="intro flex flex-col gap-2">
-                    <div className="logo flex justify-center items-center rounded-xl border-2 border-gray-100 text-gray-300 p-4 h-[70px] w-[70px]">
-                        Logo
-                    </div>
+                    <AuthLogo />
                     <p className="text-3xl font-bold break-words max-w-sm">
                         Join Dulua
                     </p>

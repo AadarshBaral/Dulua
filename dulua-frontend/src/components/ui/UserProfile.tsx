@@ -4,9 +4,9 @@ import { useAppSelector } from "@lib/hooks"
 import { RootState } from "store/store"
 import UserProfileTabs from "./UserProfileTabs"
 
-const UserProfile = ({ places }: { places: any[] }) => {
+const UserProfile = () => {
     const user = useAppSelector((state: RootState) => state.auth.user)
-
+    console.log("here is your user", user)
     return (
         <div className="relative h-[200vh]">
             {/* Background image */}
@@ -21,7 +21,7 @@ const UserProfile = ({ places }: { places: any[] }) => {
             {/* Main Card */}
 
             <div className="absolute w-[500px] md:w-[600px] lg:w-[1080px] h-[230px] top-[158px] left-0 lg:left-6 flex flex-col border-[1px] rounded-[32px] bg-white/85">
-                <UserProfileTabs user={user} places={places} />
+                <UserProfileTabs user={user} />
             </div>
         </div>
     )

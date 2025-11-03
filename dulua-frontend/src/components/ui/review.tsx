@@ -11,7 +11,15 @@ import { RootState } from "store/store"
 import { useAddReviewMutation, useGetReviewsQuery } from "store/fetchReviews"
 import { cn } from "@lib/utils"
 
-export default function ReviewsSection({ place_id }: { place_id: string }) {
+export default function ReviewsSection({
+    place_id,
+    openFromTabs,
+    onCloseModal,
+}: {
+    place_id: string
+    openFromTabs?: boolean
+    onCloseModal?: () => void
+}) {
     const { data: reviews = [], isLoading } = useGetReviewsQuery(place_id)
     const [addReview, { isLoading: isSubmitting }] = useAddReviewMutation()
     const token = useAppSelector((state: RootState) => state.auth.token)
@@ -24,6 +32,14 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
     const [images, setImages] = useState<File[]>([])
     console.log("Reviews data:", reviews)
     // ✅ Unified gallery modal
+
+    useEffect(() => {
+        if (openFromTabs) {
+            setIsModalOpen(true)
+            onCloseModal?.()
+        }
+    }, [openFromTabs])
+
     const [isGalleryOpen, setIsGalleryOpen] = useState(false)
     const [galleryImages, setGalleryImages] = useState<
         {
@@ -34,9 +50,6 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
     >([])
     const [currentIndex, setCurrentIndex] = useState(0)
 
-    // ------------------------------
-    // 📸 Handle image uploads
-    // ------------------------------
     const handleCameraCapture = (event) => {
         const files: File[] = Array.from(event.target.files)
         setImages((prev) => [...prev, ...files])
@@ -195,9 +208,22 @@ export default function ReviewsSection({ place_id }: { place_id: string }) {
                                 <Image
                                     width={64}
                                     height={64}
-                                    src="/default.png"
-                                    alt={review.username}
+                                    src={
+                                        review.profile_image
+                                            ? review.profile_image.startsWith(
+                                                  "http"
+                                              )
+                                                ? review.profile_image // full URL from backend
+                                                : `${process.env.NEXT_PUBLIC_API_URL}${review.profile_image}` // local uploads path
+                                            : "/default.png" // fallback if none
+                                    }
+                                    alt={review.username || "User"}
                                     className="w-16 h-16 object-cover rounded-xl"
+                                    onError={(e) => {
+                                        // fallback if image fails to load
+                                        ;(e.target as HTMLImageElement).src =
+                                            "/default.png"
+                                    }}
                                 />
                                 <div>
                                     <p className="font-semibold text-gray-900 w-full">

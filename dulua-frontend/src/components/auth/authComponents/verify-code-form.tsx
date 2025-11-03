@@ -10,6 +10,8 @@ import { Button } from "@components/ui/button"
 import { OtpFormInputs, otpSchema } from "@lib/validations"
 import { Step } from "../authLayout"
 import { verifyOtp } from "@api/auth"
+import Image from "next/image"
+import AuthLogo from "@components/ui/authLogo"
 
 const VerifyCodeForm = ({
     verifyCodeEnd,
@@ -65,9 +67,7 @@ const VerifyCodeForm = ({
                 className="flex flex-col gap-8 w-full"
             >
                 <div className="intro flex flex-col gap-2">
-                    <div className="logo flex justify-center items-center rounded-xl border-2 border-gray-100 text-gray-300 p-4 h-[70px] w-[70px]">
-                        Logo
-                    </div>
+                    <AuthLogo />
                     <p className="text-3xl font-bold break-words max-w-sm">
                         Verify Code
                     </p>

@@ -4,6 +4,10 @@ import { useState } from "react"
 import { Map as LeafletMap, LatLng } from "leaflet"
 import { Place } from "@lib/types"
 import { ILocation } from "@hooks/useCurrentLocation"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 export interface Step {
     instruction?: string
@@ -28,7 +32,7 @@ export default function Sidebar({
     onClose,
     onGetDirections,
 }: Props) {
-    const [activeTab, setActiveTab] = useState<"about" | "reviews">("about")
+    const router = useRouter()
 
     const calculateDistance = () => {
         const toRad = (deg: number) => (deg * Math.PI) / 180
@@ -45,84 +49,77 @@ export default function Sidebar({
     }
 
     return (
-        <div className="absolute top-4 left-4 h-[95vh] w-[360px] bg-white rounded-2xl shadow-2xl z-[1000] overflow-hidden flex flex-col border border-gray-200">
-            {/* Header Image */}
-            <div className="relative">
-                <img
-                    src="/default.png"
-                    alt={place.name}
-                    className="w-full h-52 object-cover rounded-t-2xl"
-                />
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-black bg-white bg-opacity-70 hover:bg-opacity-90 px-2 py-1 rounded-full shadow-sm"
-                >
-                    ✕
-                </button>
-            </div>
+        <div className="absolute top-4 left-4 h-[95vh] w-[500px] bg-white rounded-2xl shadow-2xl z-[1000] overflow-hidden border border-gray-200">
+            <div className="relative flex flex-col overflow-y-auto h-full">
+                {/* Header Image */}
+                <div className="relative">
+                    <Image
+                        src={place.image || "/default.png"}
+                        alt={place.name || "Place Image"}
+                        width={800}
+                        height={300}
+                        className="w-full h-52 object-cover rounded-t-2xl"
+                        unoptimized
+                        onError={(e) => {
+                            ;(e.target as HTMLImageElement).src = "/default.png"
+                        }}
+                    />
+                    <button
+                        onClick={onClose}
+                        className="absolute top-3 right-3 text-black bg-white bg-opacity-70 hover:bg-opacity-90 px-2 py-1 rounded-full shadow-sm"
+                    >
+                        ✕
+                    </button>
+                </div>
 
-            {/* Info + Tabs */}
-            <div className="bg-white px-5 pt-4 pb-3 space-y-2">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">{place.name}</h2>
-                    <div className="text-green-700 font-bold flex items-center gap-1">
-                        <span>4.9</span> ⭐
+                {/* Info Section */}
+                <div className="bg-white px-5 pt-4 pb-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-semibold">{place.name}</h2>
+                        <div className="text-green-700 font-bold flex items-center gap-1">
+                            <span>4.9</span> ⭐
+                        </div>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                        {place.category?.split(", ").map((cat) => (
+                            <span
+                                key={cat}
+                                className="inline-block bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded"
+                            >
+                                {cat[0].toUpperCase() + cat.slice(1)}
+                            </span>
+                        ))}
+                    </p>
+                </div>
+
+                {/* About Content */}
+                <div className="p-5 overflow-y-auto flex-1 bg-white h-full">
+                    <div className="space-y-3 relative h-full">
+                        <ReactMarkdown
+                            className="markdown prose prose-lg max-w-none"
+                            children={place?.description as string}
+                            remarkPlugins={[remarkGfm]}
+                        />
+
+                        {/* Action Buttons */}
+                        <div className="cont w-full py-2 left-0 sticky bottom-1 flex flex-col gap-2 bg-white">
+                            <button
+                                onClick={() =>
+                                    router.push(`/place/${place.id}`)
+                                }
+                                className="w-full bg-[#91db27] text-black font-semibold rounded-lg hover:bg-[#8ad324] transition py-2"
+                            >
+                                Read Full Detail
+                            </button>
+                            <button
+                                onClick={onGetDirections}
+                                className="w-full bg-white border-2 border-gray-200 text-black font-semibold rounded-lg hover:bg-[#d5d5d5] transition py-2"
+                            >
+                                Get Directions ({calculateDistance()} km)
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <p className="text-sm text-gray-600">
-                    Escape to this serene home nestled amidst nature...
-                </p>
-            </div>
-
-            {/* Tab Buttons */}
-            {/* Tab Buttons (Styled like image) */}
-            <div className="border-b border-gray-300 flex justify-start pl-4 gap-4">
-                {["about", "reviews"].map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab as "about" | "reviews")}
-                        className={`relative py-3 px-4 text-sm font-medium transition-colors duration-200 ${
-                            activeTab === tab
-                                ? "text-teal-700 border-b-2 border-teal-700"
-                                : "text-gray-500 hover:text-teal-700"
-                        }`}
-                    >
-                        {tab === "about" ? "About" : "Reviews"}
-                    </button>
-                ))}
-            </div>
-
-            {/* Tab Content */}
-            <div className="p-5 overflow-y-auto flex-1 bg-white h-full">
-                {activeTab === "about" ? (
-                    <div className="space-y-3 relative h-full">
-                        Lorem ipsum dolor sit amet consectetur, adipisicing
-                        elit. Dolores ad quam dicta optio impedit, dolore enim
-                        repudiandae, officiis a ratione quis, delectus ducimus
-                        expedita. A exercitationem aut dolor mollitia quibusdam?
-                        <button
-                            onClick={onGetDirections}
-                            className="w-full py-2 left-0  absolute bottom-2 bg-[#A4F03B] text-black font-semibold rounded-lg hover:bg-[#91db27] transition"
-                        >
-                            Get Directions ({calculateDistance()} km)
-                        </button>
-                    </div>
-                ) : (
-                    <div className="space-y-3 text-sm text-gray-600">
-                        <p>
-                            <strong>Prem Kumari:</strong> Loved the view and
-                            location. Peaceful and clean. 🌿
-                        </p>
-                        <p>
-                            <strong>Ramesh:</strong> Great host and comfortable
-                            place. Will visit again.
-                        </p>
-                        <p>
-                            <strong>Sita:</strong> Best nature getaway in
-                            Pokhara!
-                        </p>
-                    </div>
-                )}
             </div>
         </div>
     )
