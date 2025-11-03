@@ -37,7 +37,8 @@ class Place(SQLModel, table=True):
     featured_image_main: str = Field(nullable=False)
     featured_image_secondary: str = Field(nullable=True)
 
-    bookmarks: List["Bookmark"] = Relationship(back_populates="place")
+    bookmarks: List["Bookmark"] = Relationship(
+        back_populates="place", cascade_delete=True)
 
 
 # cateogry place, m-m relationship
@@ -53,12 +54,17 @@ class Review(SQLModel, table=True):
     review_id: UUID = Field(default_factory=uuid4,
                             primary_key=True, nullable=False)
     username: str = Field(nullable=False)
+    profile_image: Optional[str] = Field(
+        default=None, nullable=True)  # ✅ NEW optional field
     rating: float = Field(nullable=False)
     cleanliness: float = Field(nullable=False)
     comment: str = Field(nullable=False)
     timestamp: str = Field(nullable=False)
-    trash_flag: int = Field(default=0, nullable=False,
-                            description="1 if trash detected, else 0")
+    trash_flag: int = Field(
+        default=0,
+        nullable=False,
+        description="1 if trash detected, else 0"
+    )
 
     # 👉 normal images only
     images: List["ImageData"] = Relationship(
@@ -95,8 +101,10 @@ class ImageData(SQLModel, table=True):
 
 class Bookmark(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_profile_id: UUID = Field(foreign_key="userprofile.id")
-    place_id: UUID = Field(foreign_key="place.place_id")
+    user_profile_id: UUID = Field(
+        foreign_key="userprofile.id",  ondelete="CASCADE", nullable=False)
+    place_id: UUID = Field(foreign_key="place.place_id",
+                           ondelete="CASCADE", nullable=False)
 
     user_profile: UserProfile = Relationship(back_populates="bookmarks")
     place: Place = Relationship(back_populates="bookmarks")

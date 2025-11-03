@@ -30,8 +30,13 @@ app.mount("/city/images/places",
           StaticFiles(directory="uploads/places"), name="places")
 app.mount("/city/images/reviews",
           StaticFiles(directory="uploads/reviews"), name="review_images")
-
-
+app.mount("/city/images/profiles",
+          StaticFiles(directory="uploads/profile_images"), name="profile_images")
+app.mount(
+    "/uploads/profile_images",
+    StaticFiles(directory="uploads/profile_images"),
+    name="profile_images"
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

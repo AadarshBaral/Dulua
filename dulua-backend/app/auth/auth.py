@@ -125,7 +125,7 @@ async def read_users_me(
     current_user: Annotated[UserDB, Depends(get_current_active_user)],
 ):
     print(current_user)
-    return {"username": current_user.name, "email": current_user.email}
+    return {"username": current_user.name, "email": current_user.email, "id": current_user.id}
 
 
 @router.post("/register")
