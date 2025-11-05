@@ -74,8 +74,12 @@ class ReviewCreate(BaseModel):
 
 
 class ReviewPublic(ReviewCreate):
+    trash_flag: int
+    profile_image: Optional[str] = None
     images: List[str]
+    trash_images: List[str]
+    trash_data: Optional[List[dict]] = None  # ✅ new field
 
 
 class BookmarkRequest(BaseModel):
-    place_id:UUID
+    place_id: UUID

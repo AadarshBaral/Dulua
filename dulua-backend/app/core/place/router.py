@@ -2,6 +2,7 @@ from datetime import datetime
 from email.mime import image
 from app.dependencies import get_userID_from_token, role_required
 import uuid
+import os
 from sqlmodel import select, Session  # type: ignore
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -165,7 +166,7 @@ async def add_review(
     timestamp: str = Form(...),
     images: list[UploadFile] = File([]),
     session: Session = Depends(get_session),
-    user_id: str = Depends(get_userID_from_token)
+    user_id: str = Depends(get_userID_from_token),
 ):
     # ✅ Validate place_id
     try:
@@ -191,27 +192,41 @@ async def add_review(
     except ValueError:
         raise HTTPException(
             status_code=400, detail="Invalid timestamp format. Must be ISO 8601.")
-    statement_user = select(UserDB).where(UserDB.id == user_id)
-    existing_user = session.exec(statement_user).first()
 
-    # ✅ Save review
+    # ✅ Get user info
+    user_stmt = select(UserDB).where(UserDB.id == user_id)
+    existing_user = session.exec(user_stmt).first()
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # ✅ Get user's profile info (to include profile image)
+    profile_stmt = select(UserProfile).where(UserProfile.userdb_id == user_id)
+    user_profile = session.exec(profile_stmt).first()
+    user_profile_image = user_profile.image if user_profile and user_profile.image else None
+
+    # ✅ Create new review
     review = Review(
         place_id=place_uuid,
         username=existing_user.name,
+        profile_image=user_profile_image,  # ✅ Save profile image reference here
         rating=rating,
         cleanliness=cleanliness,
         comment=comment,
-        timestamp=timestamp
+        timestamp=timestamp,
+        trash_flag=0,
     )
+
     session.add(review)
     session.commit()
     session.refresh(review)
+
+    # ✅ Process uploaded images
+    trash_found = False
     detection_results = []
 
-    # ✅ Validate and save images
     for image in images:
-        if image.filename == "":
-            continue  # skip empty input
+        if not image.filename:
+            continue
 
         if not image.content_type.startswith("image/"):
             raise HTTPException(
@@ -222,61 +237,117 @@ async def add_review(
             raise HTTPException(
                 status_code=400, detail="Only JPG, JPEG, or PNG images are supported")
 
+        # ✅ Save uploaded image
         new_filename = f"{uuid.uuid4()}.{ext}"
-        file_path = UPLOAD_DIR / new_filename
-
+        file_path = os.path.join(UPLOAD_DIR, new_filename)
         image_bytes = await image.read()
 
-        with file_path.open("wb") as buffer:
+        with open(file_path, "wb") as buffer:
             buffer.write(image_bytes)
 
+        # ✅ Save the original uploaded image
         img_data = ImageData(
-            image=new_filename,
+            image_path=new_filename,
             review_id=review.review_id,
-            place_id=review.place_id
+            place_id=review.place_id,
+            is_trash=False,
         )
-        print("added images in db", img_data.image_id)
         session.add(img_data)
 
+        # ✅ Run YOLO detection
         detection_result = await detect_trash(new_filename, image_bytes)
         detection_results.append(detection_result)
+
+        detected_class = detection_result.get("detected_class", [])
+        annotated_path = detection_result.get("saved_path")
+
+        if detected_class:
+            trash_found = True
+            trash_img_data = ImageData(
+                image_path=os.path.basename(annotated_path),
+                review_id=review.review_id,
+                place_id=review.place_id,
+                detected_class=", ".join(detected_class),
+                annotated_path=annotated_path,
+                is_trash=True,
+            )
+            session.add(trash_img_data)
+
+    if trash_found:
+        review.trash_flag = 1
+
     session.commit()
+    session.refresh(review)
 
     return JSONResponse(
         status_code=201,
         content={
-            "message": "Review added successfully"
-        }
+            "message": "Review added successfully",
+            "review_id": str(review.review_id),
+            "username": existing_user.name,
+            "profile_image": user_profile_image,  # ✅ Return user profile image too
+            "trash_flag": review.trash_flag,
+            "detections": detection_results,
+        },
     )
 
 
 @router.get("/get_reviews/{place_id}", response_model=list[ReviewPublic])
-async def get_review(request: Request, place_id: UUID, session: Session = Depends(get_session)):
+async def get_reviews(request: Request, place_id: UUID, session=Depends(get_session)):
     baseurl = str(request.base_url).rstrip("/")
 
-    # Get all reviews and images related to the place
+    # ✅ Get all reviews for this place
     reviews_result = session.exec(
-        select(Review).where(Review.place_id == place_id))
+        select(Review).where(Review.place_id == place_id)
+    ).all()
+
+    # ✅ Get all related images for this place
     images = list(session.exec(
-        select(ImageData).where(ImageData.place_id == place_id)))
+        select(ImageData).where(ImageData.place_id == place_id)
+    ))
 
     reviews = []
 
     for rev in reviews_result:
-        review_images = [
-            f"{baseurl}/city/images/reviews/{img.image}"
-            for img in images if img.review_id == rev.review_id
+        # ✅ Normal (non-trash) images
+        normal_images = [
+            f"{baseurl}/city/images/reviews/{img.image_path}"
+            for img in images
+            if img.review_id == rev.review_id and not img.is_trash
         ]
 
-        review_data = ReviewPublic(
-            place_id=rev.place_id,
-            username=rev.username,
-            rating=rev.rating,
-            cleanliness=rev.cleanliness,
-            comment=rev.comment,
-            timestamp=rev.timestamp,
-            images=review_images
+        # ✅ Trash images: return both URL + detected classes
+        trash_data = [
+            {
+                "image_url": f"{baseurl}/city/images/reviews/trash/{os.path.basename(img.annotated_path)}",
+                "detected_class": img.detected_class.split(", ") if img.detected_class else [],
+            }
+            for img in images
+            if img.review_id == rev.review_id and img.is_trash and img.annotated_path
+        ]
+
+        # ✅ Construct full profile image URL if available
+        profile_image_url = (
+            f"{baseurl}{rev.profile_image}"
+            if rev.profile_image and not rev.profile_image.startswith("http")
+            else rev.profile_image
         )
+
+        # ✅ Build the final review response
+        review_data = {
+            "place_id": rev.place_id,
+            "username": rev.username,
+            "profile_image": profile_image_url,   # ✅ Added field
+            "rating": rev.rating,
+            "cleanliness": rev.cleanliness,
+            "comment": rev.comment,
+            "timestamp": rev.timestamp,
+            "trash_flag": rev.trash_flag,
+            "images": normal_images,
+            "trash_images": [t["image_url"] for t in trash_data],
+            "trash_data": trash_data,  # ✅ Includes both URL + class labels
+        }
+
         reviews.append(review_data)
 
     return reviews
@@ -327,19 +398,14 @@ async def all_places(request: Request, session: Session = Depends(get_session)):
     return place_results
 
 
-@router.post("/bookmark/")
+@router.post("/bookmark")
 def toggle_bookmark(
     data: BookmarkRequest,
     session: Session = Depends(get_session),
     current_user: UserProfile = Depends(get_my_profile),
 ):
     place_id = data.place_id
-    place = session.exec(
-        select(Place).where(Place.place_id == place_id)
-    ).first()
 
-    if not place:
-        raise HTTPException(status_code=404, detail="Place not found")
     # Check if bookmark already exists
     bookmark = session.exec(
         select(Bookmark).where(
@@ -349,16 +415,88 @@ def toggle_bookmark(
     ).first()
 
     if bookmark:
-        # Bookmark exists, remove it
+        # Bookmark exists → remove it
         session.delete(bookmark)
         session.commit()
-        return {"message": "Bookmark removed"}
-    else:
-        # Add new bookmark
-        new_bookmark = Bookmark(
-            user_profile_id=current_user.id,
-            place_id=place_id
+        return {"status": "removed", "place_id": place_id}
+
+    # Otherwise, add new one
+    new_bookmark = Bookmark(
+        user_profile_id=current_user.id,
+        place_id=place_id
+    )
+    session.add(new_bookmark)
+    session.commit()
+    return {"status": "added", "place_id": place_id}
+
+
+@router.get("/is_bookmarked/{place_id}")
+def is_bookmarked(place_id: UUID, session: Session = Depends(get_session), current_user: UserProfile = Depends(get_my_profile),):
+    bookmark = session.exec(
+        select(Bookmark).where(
+            Bookmark.user_profile_id == current_user.id,
+            Bookmark.place_id == place_id
         )
-        session.add(new_bookmark)
-        session.commit()
-        return {"message": "Bookmark added"}
+    ).first()
+    return {"bookmarked": bool(bookmark)}
+
+
+@router.get("/bookmarks", response_model=List[PublicPlace])
+def get_bookmarks(
+    request: Request,
+    current_user: UserProfile = Depends(get_my_profile),
+    session: Session = Depends(get_session)
+):
+    bookmarks = session.exec(
+        select(Bookmark)
+        .where(Bookmark.user_profile_id == current_user.id)
+    ).all()
+
+    if not bookmarks:
+        raise HTTPException(status_code=404, detail="No bookmarks found")
+
+    baseurl = str(request.base_url).rstrip("/")
+    place_results = []
+
+    for bookmark in bookmarks:
+        place = session.exec(
+            select(Place).where(Place.place_id == bookmark.place_id)
+        ).first()
+        if not place:
+            continue
+
+        # Get related geo_location
+        geo_location = session.exec(
+            select(Geolocation).where(
+                Geolocation.geo_location_id == place.geo_location_id
+            )
+        ).first()
+
+        # Get related city
+        city = session.exec(
+            select(City).where(City.city_id == place.city_id)
+        ).first()
+
+        # Categories
+        categories = [
+            CategoryRead.model_validate(cat)
+            for cat in place.categories
+        ]
+
+        # Construct full object
+        place_result = PublicPlace(
+            place_id=place.place_id,
+            city_id=city.city_id,
+            city_name=city.geo_location.name,
+            name=geo_location.name,
+            latitude=geo_location.latitude,
+            longitude=geo_location.longitude,
+            description=geo_location.description,
+            category=categories,
+            featured=place.featured,
+            featured_image_main=f"{baseurl}/city/images/places/{place.featured_image_main}",
+            featured_image_secondary=f"{baseurl}/city/images/places/{place.featured_image_secondary}",
+        )
+        place_results.append(place_result)
+
+    return place_results

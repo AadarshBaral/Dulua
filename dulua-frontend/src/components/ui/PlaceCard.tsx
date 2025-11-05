@@ -1,60 +1,41 @@
 "use client"
+
 import { IPlace } from "@api/core"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ReactPortal, useState } from "react"
-import { redirect } from "next/navigation"
-
+import { useState } from "react"
 import { FaStar } from "react-icons/fa"
-import { IoHeartSharp } from "react-icons/io5"
-import { IoHeartOutline } from "react-icons/io5"
+import BookmarkButton from "./BookmarkButton"
+
 const PlaceCard = ({ place }: { place: IPlace }) => {
-    // const [isBookmarked, setIsBookmarked] = React.useState(false)
-    let isBookmarked = false
     const router = useRouter()
     const [imgSrc, setImgSrc] = useState(place.featured_image_main)
+
     return (
         <div
             onClick={() => router.push(`/place/${place.place_id}`)}
             className="place list-style-none selection-none cursor-pointer group"
         >
             <div className="img-container relative selection-none">
-                {isBookmarked ? (
-                    <div
-                        // onClick={() => setIsBookmarked((prev) => !prev)}
-                        className="clickable-target h-[48px] w-[48px]   absolute right-2 top-2 select-none"
-                    >
-                        <IoHeartSharp
-                            className="absolute right-2 top-2 select-none"
-                            size={30}
-                            color="white"
-                            stroke="black "
-                            strokeWidth="12"
-                        />
-                    </div>
-                ) : (
-                    <div
-                        // onClick={() => setIsBookmarked((prev) => !prev)}
-                        className=" h-[48px] w-[48px]  clickable-target p-4  absolute right-2 top-2 select-none"
-                    >
-                        <IoHeartOutline
-                            className="absolute right-2 top-2 select-none"
-                            size={30}
-                            color="gray"
-                        />
-                    </div>
-                )}
+                {/* ✅ Use global bookmark button */}
+                <div
+                    className="absolute right-3 top-3 z-10"
+                    onClick={(e) => e.stopPropagation()} // prevent redirect
+                >
+                    <BookmarkButton place_id={place.place_id} />
+                </div>
 
                 <Image
                     src={imgSrc}
-                    alt="image"
+                    alt={place.name}
                     className="rounded-3xl mb-2 select-none h-[250px] w-[250px] object-cover group-hover:border-2 border-gray-300"
                     height={325}
                     width={325}
                     onError={() => setImgSrc("/default.png")}
                 />
             </div>
-            <h3 className="text-lg font-semibold ">{place.name}</h3>
+
+            <h3 className="text-lg font-semibold">{place.name}</h3>
 
             <div className="place-details flex flex-row gap-2">
                 <p>{place.city_name}</p>

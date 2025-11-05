@@ -27,7 +27,6 @@ export async function generateMetadata({
     const { place_detail } = params
 
     const placeData = await getPlace(place_detail)
-
     return {
         title: `${placeData?.name} | Explore Pokhara`,
         description: placeData?.description?.slice(0, 150),
@@ -90,7 +89,7 @@ export default async function PlaceDetail({ params }: Props) {
                 ))}
             </div>
 
-            <Tabs>
+            <Tabs place_id={placeData?.place_id || ""}>
                 <Tab key="details" title="Details">
                     <div className="mb-8">
                         <ReactMarkdown
@@ -107,6 +106,7 @@ export default async function PlaceDetail({ params }: Props) {
                             sidebar={false}
                             places={[
                                 {
+                                    id: placeData?.place_id as string,
                                     name: placeData?.name as string,
                                     category: "place",
                                     lat: parseFloat(
@@ -115,6 +115,14 @@ export default async function PlaceDetail({ params }: Props) {
                                     lng: parseFloat(
                                         placeData?.longitude as string
                                     ),
+                                    description:
+                                        placeData?.description as string,
+                                    image:
+                                        placeData?.featured_image_main ||
+                                        "/default.png",
+                                    featured_image_secondary:
+                                        placeData?.featured_image_secondary ||
+                                        "/default.png",
                                 },
                             ]}
                         />

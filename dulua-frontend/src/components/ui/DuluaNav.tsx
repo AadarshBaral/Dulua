@@ -9,6 +9,7 @@ import { useRouter } from "next/router"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@lib/utils"
+import Image from "next/image"
 const DuluaNav = ({
     heroDetail = false,
     heroTitle = "Pokhara",
@@ -33,10 +34,20 @@ const DuluaNav = ({
             )}
         >
             <Link
-                href={"/"}
+                href="/"
                 className="navlogo flex justify-center items-center gap-2"
             >
-                <div className="logo h-10 w-10 bg-neutral-300 rounded-md  "></div>
+                <div className="logo h-10 w-10 rounded-md overflow-hidden flex items-center justify-center">
+                    <Image
+                        src="/logo/logo2.png" // ✅ put your image in /public/logo.png
+                        alt="Dulua Logo"
+                        width={40}
+                        height={40}
+                        className="object-cover" // ensures it fits nicely inside the div
+                        priority // loads it immediately for faster nav
+                    />
+                </div>
+
                 <h1 className="text-xl font-bold">Dulua</h1>
             </Link>
             {pathname == "/" && (

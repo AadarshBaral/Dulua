@@ -10,6 +10,7 @@ from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.core_models import LocalGuide
+    from app.core.userprofile.models import UserProfile
 
 
 class PendingRegistration(SQLModel, table=True):
@@ -29,3 +30,7 @@ class UserDB(UserBase, table=True):
     role: UserRoleEnum = Field(default=UserRoleEnum.user, nullable=False)
 
     local_guides: list["LocalGuide"] = Relationship(back_populates="user")
+    profile: Optional["UserProfile"] = Relationship(
+        back_populates="userdb",
+        cascade_delete=True
+    )
