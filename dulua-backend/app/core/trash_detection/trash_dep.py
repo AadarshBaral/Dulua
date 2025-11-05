@@ -11,7 +11,7 @@ router = APIRouter()
 # Model loading
 
 BASE_DIR = Path(__file__).resolve().parent
-model_path = BASE_DIR / "best.pt"
+model_path = BASE_DIR / "best3.pt"
 model = YOLO(model_path)
 
 # ✅ Create /trash subfolder under the main reviews upload folder
