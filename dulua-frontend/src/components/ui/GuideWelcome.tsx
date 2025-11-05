@@ -3,7 +3,7 @@ import React from "react"
 
 const GuideWelcomCard = () => {
     return (
-        <div className="relative rounded-[3rem] overflow-hidden w-full max-w-5xl mx-auto h-[300px] flex items-center justify-center">
+        <div className="relative rounded-[3rem] overflow-hidden w-full  mx-auto h-[300px] flex items-center justify-center">
             {/* Background Image */}
             <Image
                 src="/pokhara.png" // Update this path to be in /public
