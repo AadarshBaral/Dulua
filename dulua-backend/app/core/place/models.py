@@ -10,7 +10,6 @@ from app.core.userprofile.models import UserProfile
 if TYPE_CHECKING:
     from app.auth.models import UserDB
     from app.core.userprofile.models import UserProfile
-    from app.core.place.models import Place
 
 
 class PlaceCategoryLink(SQLModel, table=True):
@@ -39,9 +38,11 @@ class Place(SQLModel, table=True):
 
     bookmarks: List["Bookmark"] = Relationship(
         back_populates="place", cascade_delete=True)
-
+    guides: list["LocalGuide"] = Relationship(back_populates="place")
 
 # cateogry place, m-m relationship
+
+
 class Category(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid.uuid4,
                      primary_key=True, nullable=False)

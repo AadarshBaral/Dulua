@@ -1,4 +1,5 @@
 import os
+from typing import List
 from sqlmodel import select, Session  # type: ignore
 from fastapi import APIRouter, Depends, HTTPException
 from uuid import uuid4, UUID
@@ -17,7 +18,7 @@ UPLOAD_localguide = Path("uploads/localguide")
 UPLOAD_localguide.mkdir(exist_ok=True, parents=True)
 
 
-@router.post("/local-guide")
+@router.post("/add")
 async def add_local_guide(
         request: Request,
         id_image1: UploadFile = File(...),
@@ -25,11 +26,13 @@ async def add_local_guide(
         name: str = Form(...),
         age: int = Form(...),
         address: str = Form(...),
+        place_id: UUID = Form(...),
         contact: int = Form(...),
         email: EmailStr = Form(...),
         session: Session = Depends(get_session)):
 
     checkEmail = get_email_from_token(request)
+    print("here is email", checkEmail)
     if checkEmail != email:
         raise HTTPException(
             status_code=403, detail=f"Curent User Email doesnot match entered email")
@@ -70,7 +73,8 @@ async def add_local_guide(
         email=email,
         bio="",
         language="",
-        user_id=UUID(get_userID_from_token(request))
+        user_id=get_userID_from_token(request),
+        place_id=place_id
 
     )
 
@@ -96,7 +100,7 @@ async def verifyLocalGuide(id: UUID, request: Request, session: Session = Depend
     return {"Message": "Guide Verified"}
 
 
-@router.post("/getLocalGuide/{guide_id}")
+@router.get("/getLocalGuide/{guide_id}")
 async def getLocalGuide(guide_id: UUID, session: Session = Depends(get_session)):
     guide = session.exec(select(LocalGuide).where(
         LocalGuide.guide_id == guide_id)).first()
@@ -105,6 +109,14 @@ async def getLocalGuide(guide_id: UUID, session: Session = Depends(get_session))
     if not guide:
         raise HTTPException(status_code=404, detail="Guide not found")
     return {"Guide Data": guide}
+
+
+@router.get("/getAllLocalGuides", response_model=List[LocalGuide])
+async def getAllLocalGuides(session: Session = Depends(get_session)):
+    guides = session.exec(select(LocalGuide)).all()
+    if not guides:
+        raise HTTPException(status_code=404, detail="No local guides found")
+    return guides
 
 
 @router.delete("deleteLocalGuide/{guide_id}")

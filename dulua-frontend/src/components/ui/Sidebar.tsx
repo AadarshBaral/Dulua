@@ -8,6 +8,8 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { useGetReviewsQuery } from "store/fetchReviews"
+import { FaLeaf, FaStar } from "react-icons/fa6"
 
 export interface Step {
     instruction?: string
@@ -47,6 +49,13 @@ export default function Sidebar({
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         return (R * c).toFixed(2)
     }
+    const { data: reviews = [], isLoading } = useGetReviewsQuery(place.id)
+
+    const rating =
+        reviews.reduce((acc, r) => acc + r.rating, 0) / (reviews.length || 1)
+    const cleanliness =
+        reviews.reduce((acc, r) => acc + r.cleanliness, 0) /
+        (reviews.length || 1)
 
     return (
         <div className="absolute top-4 left-4 h-[95vh] w-[500px] bg-white rounded-2xl shadow-2xl z-[1000] overflow-hidden border border-gray-200">
@@ -76,8 +85,16 @@ export default function Sidebar({
                 <div className="bg-white px-5 pt-4 pb-3 space-y-2">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-semibold">{place.name}</h2>
-                        <div className="text-green-700 font-bold flex items-center gap-1">
-                            <span>4.9</span> ⭐
+                        <div className="flex flex-row justify-center items-center gap-2">
+                            <div className="flex flex-row items-center gap-2">
+                                <FaStar className="text-yellow-400" />
+                                <p>{rating.toFixed(1)}</p>
+                            </div>
+                            <div className="cont h-[15px] w-[1px] bg-gray-300"></div>
+                            <div className="flex flex-row items-center gap-2">
+                                <FaLeaf className="text-green-400" />
+                                <p>{cleanliness.toFixed(1)}</p>
+                            </div>
                         </div>
                     </div>
                     <p className="text-sm text-gray-600">
