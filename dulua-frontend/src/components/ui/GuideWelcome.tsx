@@ -1,5 +1,7 @@
 import Image from "next/image"
+import { Redirect } from "next"
 import React from "react"
+import Link from "next/link"
 
 const GuideWelcomCard = () => {
     return (
@@ -25,9 +27,12 @@ const GuideWelcomCard = () => {
                     Share your knowledge of Pokhara and help travelers discover
                     hidden gems while promoting sustainable tourism
                 </p>
-                <button className="bg-lime-400 hover:bg-lime-500 text-black font-medium px-6 py-2 rounded-full shadow">
+                <Link
+                    href="/localguide"
+                    className="bg-lime-400 hover:bg-lime-500 text-black font-medium px-6 py-2 rounded-full shadow"
+                >
                     Register as a guide
-                </button>
+                </Link>
             </div>
         </div>
     )

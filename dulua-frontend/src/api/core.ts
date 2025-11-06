@@ -48,6 +48,13 @@ export const fetchPlaces = async (): Promise<IPlace[] | null> => {
     }
 }
 
+// export const getGuides = await fetch(
+//     `${process.env.NEXT_PUBLIC_API_URL}/getAllLocalGuides`,
+//     {
+//         cache: "no-store",
+//     }
+// ).then((res) => res.json())
+
 export const getPlace = async (place_id: string): Promise<IPlace | null> => {
     try {
         const res = await fetch(baseURL(`/place/get_place/${place_id}`))

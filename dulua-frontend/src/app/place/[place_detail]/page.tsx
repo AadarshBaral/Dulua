@@ -18,6 +18,7 @@ import { Metadata } from "next"
 import MapRenderer from "@components/ui/MapRenderer"
 import useCurrentLocation, { ILocation } from "@hooks/useCurrentLocation"
 import MapLoader from "@components/ui/MapLoader"
+import { FaPhone } from "react-icons/fa6"
 
 export async function generateMetadata({
     params,
@@ -54,6 +55,16 @@ export async function generateMetadata({
 export default async function PlaceDetail({ params }: Props) {
     const { place_detail } = await params
     const placeData = await getPlace(place_detail)
+    const guides = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/local_guide/getAllLocalGuides`,
+        {
+            method: "GET",
+            cache: "no-store", // ensures fresh data every load
+        }
+    ).then((res) => res.json())
+
+    console.log("Guides:", guides)
+
     const markdown = `# Just a link: https://reactjs.com.`
 
     const images = [
@@ -97,6 +108,39 @@ export default async function PlaceDetail({ params }: Props) {
                             children={placeData?.description as string}
                             remarkPlugins={[remarkGfm]}
                         />
+                        <div className="line w-full h-[2px] bg-gray-200 my-16"></div>
+                        <div>
+                            <p className="mb-4 text-2xl font-semibold text-primary">
+                                Local Guides around {placeData?.name}
+                            </p>
+                            <div className="cont flex flex-row gap-4">
+                                {guides.map((guide, idx) => (
+                                    <div className="guide w-fit border-2 border-gray-100 rounded-3xl p-6 flex flex-col ">
+                                        <div className="cont h-48 w-48 rounded-full bg-gray-200">
+                                            <Image
+                                                src={
+                                                    guide.profile_picture ||
+                                                    "/default.png"
+                                                }
+                                                alt={guide.name}
+                                                height={192}
+                                                width={192}
+                                                className="rounded-full object-cover h-48 w-48"
+                                            />
+                                        </div>
+                                        <div className="info mt-4 flex flex-col justify-center items-center gap-2">
+                                            <h3 className="text-lg font-semibold">
+                                                {guide.name}
+                                            </h3>
+                                            <div className="cont flex items-center gap-1 py-2 px-6 border-2 border-gray-200 rounded-full mt-1">
+                                                <FaPhone className="text-accent" />{" "}
+                                                <p>{guide.contact}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </Tab>
 

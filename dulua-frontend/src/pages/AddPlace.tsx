@@ -88,14 +88,19 @@ export default function AddPlace() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto mt-10 px-4">
-            <h1 className="text-3xl font-bold mb-6 text-center">
-                📍 Add New Place
-            </h1>
+        <div className="w-full mx-auto mt-10 px-4">
+            <div className="cont  my-10  border-b-2 border-gray-100">
+                <h2 className="text-4xl font-semibold text-accent mb-2 text-left">
+                    Add New Place
+                </h2>
+                <p className="text-gray-500 text-left text-base mb-8">
+                    Create and manage new locations in Explore Pokhara.
+                </p>
+            </div>
 
             <form
                 onSubmit={handleSubmit}
-                className="space-y-6"
+                className="space-y-6 max-w-3xl mx-auto"
                 encType="multipart/form-data"
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

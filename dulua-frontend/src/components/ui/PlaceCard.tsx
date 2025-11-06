@@ -6,10 +6,19 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { FaStar } from "react-icons/fa"
 import BookmarkButton from "./BookmarkButton"
+import { useGetReviewsQuery } from "store/fetchReviews"
+import { FaLeaf } from "react-icons/fa6"
 
 const PlaceCard = ({ place }: { place: IPlace }) => {
     const router = useRouter()
     const [imgSrc, setImgSrc] = useState(place.featured_image_main)
+    const { data: reviews = [], isLoading } = useGetReviewsQuery(place.place_id)
+
+    const rating =
+        reviews.reduce((acc, r) => acc + r.rating, 0) / (reviews.length || 1)
+    const cleanliness =
+        reviews.reduce((acc, r) => acc + r.cleanliness, 0) /
+        (reviews.length || 1)
 
     return (
         <div
@@ -41,8 +50,14 @@ const PlaceCard = ({ place }: { place: IPlace }) => {
                 <p>{place.city_name}</p>
                 <p className="text-gray-300">|</p>
                 <div className="flex flex-row justify-center items-center gap-2">
-                    <FaStar />
-                    <p>4.9</p>
+                    <div className="flex flex-row items-center gap-2">
+                        <FaStar />
+                        <p>{rating.toFixed(1)}</p>
+                    </div>
+                    <div className="flex flex-row items-center gap-2">
+                        <FaLeaf />
+                        <p>{cleanliness.toFixed(1)}</p>
+                    </div>
                 </div>
             </div>
         </div>
