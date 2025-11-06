@@ -96,7 +96,6 @@ def get_email_from_token(request: Request):
         raise HTTPException(status_code=401, detail="Invalid auth header")
 
     token = auth_header.split(" ")[1]
-    check_token_expiry(token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("email")
