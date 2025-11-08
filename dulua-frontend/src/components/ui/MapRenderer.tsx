@@ -13,6 +13,7 @@ import { ILocation } from "@hooks/useCurrentLocation"
 import Sidebar from "./Sidebar"
 import { cn } from "@lib/utils"
 import Heatmap from "./Heatmap"
+import { Map, Trash2 } from "lucide-react"
 
 const MyLocationIcon = new L.Icon({
     iconUrl: "/usermarker.png",
@@ -112,7 +113,7 @@ function MapRenderer({
                         place.lat,
                         place.lng,
                         // ((5 - place.average_cleanliness) / 5) * 100,
-                        (place.average_cleanliness / 5) * 100,
+                        ((5 - place.average_cleanliness) / 5) * 100,
                     ])}
                 />
             </MapContainer>
@@ -132,12 +133,21 @@ function MapRenderer({
                 />
             )}
 
-            {/* Heatmap Toggle Button */}
             <button
                 onClick={toggleHeatmap}
-                className="absolute top-4 left-4 bg-blue-600 text-white p-2 rounded-full"
+                className="absolute top-4 right-5 flex items-center gap-2 bg-white/40 backdrop-blur-md border border-gray-200 shadow-md rounded-full px-4 py-2 hover:bg-gray-50 transition"
             >
-                {heatmapEnabled ? "Disable Heatmap" : "Enable Heatmap"}
+                {/* Icon */}
+                {heatmapEnabled ? (
+                    <Trash2 className="text-red-500 w-5 h-5" />
+                ) : (
+                    <Map className="text-blue-600 w-5 h-5" />
+                )}
+
+                {/* Label */}
+                <span className="text-base font-bold text-gray-700">
+                    {heatmapEnabled ? "Trash Mode" : "Map Mode"}
+                </span>
             </button>
         </div>
     )

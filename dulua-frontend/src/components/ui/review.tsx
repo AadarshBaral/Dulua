@@ -363,15 +363,29 @@ export default function ReviewsSection({
                             <IoMdClose />
                         </button>
 
-                        <Image
-                            src={galleryImages[currentIndex].image_url}
-                            alt={`Gallery-${currentIndex}`}
-                            width={1000}
-                            height={600}
-                            className="object-contain w-full max-h-[80vh] rounded-xl"
-                        />
+                        <div className="relative w-full flex justify-center items-center">
+                            {galleryImages[currentIndex].image_url.endsWith(
+                                ".mp4"
+                            ) ||
+                            galleryImages[currentIndex].image_url.endsWith(
+                                ".mov"
+                            ) ? (
+                                <video
+                                    src={galleryImages[currentIndex].image_url}
+                                    controls
+                                    className="object-contain w-full max-h-[80vh] rounded-xl"
+                                />
+                            ) : (
+                                <Image
+                                    src={galleryImages[currentIndex].image_url}
+                                    alt={`Gallery-${currentIndex}`}
+                                    width={1000}
+                                    height={600}
+                                    className="object-contain w-full max-h-[80vh] rounded-xl"
+                                />
+                            )}
 
-                        <div className="flex justify-between items-center w-full text-white px-4">
+                            {/* ⬅ Prev button */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation()
@@ -381,27 +395,12 @@ export default function ReviewsSection({
                                             galleryImages.length
                                     )
                                 }}
-                                className="text-3xl font-bold hover:text-yellow-400"
+                                className="absolute left-4 top-1/2 -translate-y-1/2 text-4xl font-bold text-white hover:text-yellow-400 transition bg-white/20 rounded-full py-2 px-4 "
                             >
                                 ‹
                             </button>
 
-                            {/* Detected classes (for trash) */}
-                            {/* {galleryImages[currentIndex].type === "trash" &&
-                                galleryImages[currentIndex].detected_class && (
-                                    <div className="text-center">
-                                        <p className="text-yellow-400 font-semibold mb-1">
-                                            Detected Items:
-                                        </p>
-                                        <p className="text-sm text-gray-200 italic">
-                                            {galleryImages[
-                                                currentIndex
-                                            ].detected_class.join(", ") ||
-                                                "Unknown object"}
-                                        </p>
-                                    </div>
-                                )} */}
-
+                            {/* ➡ Next button */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation()
@@ -410,7 +409,7 @@ export default function ReviewsSection({
                                             (prev + 1) % galleryImages.length
                                     )
                                 }}
-                                className="text-3xl font-bold hover:text-yellow-400"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-4xl font-bold text-white hover:text-yellow-400 bg-white/30 rounded-full py-2 px-4  transition"
                             >
                                 ›
                             </button>
@@ -522,7 +521,7 @@ export default function ReviewsSection({
                             <input
                                 ref={fileInputRef}
                                 type="file"
-                                accept="image/*"
+                                accept="image/*,video/*"
                                 multiple
                                 onChange={handleCameraCapture}
                                 className="hidden"
@@ -535,11 +534,19 @@ export default function ReviewsSection({
                                         key={index}
                                         className="relative w-20 h-20"
                                     >
-                                        <img
-                                            src={URL.createObjectURL(file)}
-                                            alt={`preview-${index}`}
-                                            className="w-full h-full object-cover rounded-lg"
-                                        />
+                                        {file.type.startsWith("video/") ? (
+                                            <video
+                                                src={URL.createObjectURL(file)}
+                                                className="w-full h-full object-cover rounded-lg"
+                                                controls
+                                            />
+                                        ) : (
+                                            <img
+                                                src={URL.createObjectURL(file)}
+                                                alt={`preview-${index}`}
+                                                className="w-full h-full object-cover rounded-lg"
+                                            />
+                                        )}
                                         <button
                                             onClick={() => removeImage(index)}
                                             className="absolute -top-2 -right-2 bg-black bg-opacity-70 rounded-full p-1"
