@@ -229,16 +229,19 @@ async def add_review(
     if not existing_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # ✅ Get user's profile info (to include profile image)
+    # ✅ Get user's profile info
     profile_stmt = select(UserProfile).where(UserProfile.userdb_id == user_id)
     user_profile = session.exec(profile_stmt).first()
-    user_profile_image = user_profile.image if user_profile and user_profile.image else None
+    if not user_profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+
+    user_profile_image = user_profile.image if user_profile.image else None
 
     # ✅ Create new review
     review = Review(
         place_id=place_uuid,
         username=existing_user.name,
-        profile_image=user_profile_image,  # ✅ Save profile image reference here
+        profile_image=user_profile_image,
         rating=rating,
         cleanliness=cleanliness,
         comment=comment,
@@ -253,19 +256,20 @@ async def add_review(
     # ✅ Process uploaded images
     trash_found = False
     detection_results = []
+    green_points_earned = 0  # Track green points
 
     for image in images:
         if not image.filename:
             continue
 
-        if not image.content_type.startswith("image/"):
+        if not (image.content_type.startswith("image/") or image.content_type.startswith("video/")):
             raise HTTPException(
-                status_code=400, detail="Only image files are allowed")
+                status_code=400, detail="Only image or video files are allowed")
 
         ext = image.filename.split(".")[-1].lower()
-        if ext not in ["jpg", "jpeg", "png"]:
+        if ext not in ["jpg", "jpeg", "png", "mp4", "mov", "avi", "mkv"]:
             raise HTTPException(
-                status_code=400, detail="Only JPG, JPEG, or PNG images are supported")
+                status_code=400, detail="Unsupported file type")
 
         # ✅ Save uploaded image
         new_filename = f"{uuid.uuid4()}.{ext}"
@@ -283,6 +287,7 @@ async def add_review(
             is_trash=False,
         )
         session.add(img_data)
+        green_points_earned += 1  # ✅ +1 green point per uploaded image
 
         # ✅ Run YOLO detection
         detection_result = await detect_trash(new_filename, image_bytes)
@@ -306,8 +311,14 @@ async def add_review(
     if trash_found:
         review.trash_flag = 1
 
+    # ✅ Increment contribution and green points
+    user_profile.contribution += 1  # +1 per review
+    user_profile.green_points += green_points_earned  # +1 per image
+
+    session.add(user_profile)
     session.commit()
     session.refresh(review)
+    session.refresh(user_profile)
 
     return JSONResponse(
         status_code=201,
@@ -315,9 +326,11 @@ async def add_review(
             "message": "Review added successfully",
             "review_id": str(review.review_id),
             "username": existing_user.name,
-            "profile_image": user_profile_image,  # ✅ Return user profile image too
+            "profile_image": user_profile_image,
             "trash_flag": review.trash_flag,
             "detections": detection_results,
+            "user_contribution": user_profile.contribution,
+            "user_green_points": user_profile.green_points,
         },
     )
 
