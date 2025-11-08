@@ -12,6 +12,7 @@ import RegisterForm from "./authComponents/register-form"
 import VerifyCodeForm from "./authComponents/verify-code-form"
 import Intro from "./authComponents/intro"
 import LoginForm from "./authComponents/login-form"
+import { Toaster } from "react-hot-toast"
 
 export type Step = "intro" | "login" | "register" | "verifyCode"
 
@@ -53,7 +54,7 @@ const AuthLayout = () => {
                 <div
                     className="wrapper flex justify-center items-center  w-full h-full bg-black/40 absolute "
                     onClick={() => dispatch(closeModal())}
-                    style={{ zIndex: 10000 }}
+                    style={{ zIndex: 100 }}
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}

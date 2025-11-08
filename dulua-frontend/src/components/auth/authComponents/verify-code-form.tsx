@@ -12,6 +12,7 @@ import { Step } from "../authLayout"
 import { verifyOtp } from "@api/auth"
 import Image from "next/image"
 import AuthLogo from "@components/ui/authLogo"
+import toast from "react-hot-toast"
 
 const VerifyCodeForm = ({
     verifyCodeEnd,
@@ -37,19 +38,34 @@ const VerifyCodeForm = ({
     const code = watch("code")
 
     const onSubmit = async (data: OtpFormInputs) => {
-        setLoading(true)
-        const email = localStorage.getItem("email")
-        if (email != null) {
-            const response = await verifyOtp({ email, otp: data.code })
-            if (response.status === 200) {
-                changePageState("login")
-            } else {
-                console.error("OTP verification failed", response.data)
+        try {
+            setLoading(true)
+
+            const email = localStorage.getItem("email")
+
+            if (!email) {
+                toast.error("Email not found. Please register again.")
+                setLoading(false)
+                return
             }
-        } else {
-            console.error("email not found")
+
+            const response = await verifyOtp({ email, otp: data.code })
+
+            if (response.status === 200) {
+                toast.success("OTP verified successfully! 🎉")
+                changePageState("login") // proceed to login page
+            } else {
+                toast.error(
+                    response.data?.message ||
+                        "OTP verification failed. Please try again."
+                )
+            }
+        } catch (error) {
+            console.error("OTP verification error:", error)
+            toast.error("Network error. Please check your connection.")
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     useEffect(() => {

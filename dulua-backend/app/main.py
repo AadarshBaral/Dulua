@@ -37,6 +37,11 @@ app.mount(
     StaticFiles(directory="uploads/profile_images"),
     name="profile_images"
 )
+app.mount(
+    "/uploads/localguide",
+    StaticFiles(directory="uploads/localguide"),
+    name="localguide"
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

@@ -14,6 +14,7 @@ import { fetchUserProfile, loginUser } from "store/appSlice/authSlice"
 import { closeModal } from "store/appSlice/modalStore"
 import Image from "next/image"
 import AuthLogo from "@components/ui/authLogo"
+import toast from "react-hot-toast"
 
 function LoginForm({
     loginEnd,
@@ -40,6 +41,7 @@ function LoginForm({
     const onSubmit = async (data: LoginFormInputs) => {
         const result = await dispatch(loginUser(data))
         console.log("Login Result:", result)
+
         if (loginUser.fulfilled.match(result)) {
             await dispatch(
                 fetchUserProfile({
@@ -47,10 +49,16 @@ function LoginForm({
                     tokenType: result.payload.token_type,
                 })
             )
+            toast.success("Login successful! 👋")
+            dispatch(closeModal())
+        } else if (loginUser.rejected.match(result)) {
+            const message =
+                result.payload ||
+                result.error?.message ||
+                "Incorrect username or password"
+            toast.error(message)
         }
-        dispatch(closeModal())
     }
-
     return (
         <div className="h-auto flex items-center justify-center rounded-xl w-full">
             <form

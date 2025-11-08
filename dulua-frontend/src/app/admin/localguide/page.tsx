@@ -15,6 +15,8 @@ interface LocalGuide {
     address: string
     bio: string
     language: string
+    id_image1: string
+    id_image2: string
     status: boolean
 }
 
@@ -25,6 +27,7 @@ export default function LocalGuidesPage() {
     const [approving, setApproving] = useState(false)
     const [disabling, setDisabling] = useState(false)
     const [deleting, setDeleting] = useState(false)
+    const [previewImage, setPreviewImage] = useState<string | null>(null)
 
     // ✅ Fetch all guides on page load
     const fetchGuides = async () => {
@@ -215,19 +218,39 @@ export default function LocalGuidesPage() {
 
             {/* ✅ Modal */}
             {selectedGuide && (
-                <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-[400px] relative">
+                <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 px-4">
+                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative overflow-y-auto max-h-[90vh]">
+                        {/* Close Button */}
                         <button
                             onClick={() => setSelectedGuide(null)}
-                            className="absolute top-2 right-3 text-gray-400 hover:text-gray-600 text-xl"
+                            className="absolute top-4 right-5 text-gray-400 hover:text-gray-600 text-2xl"
                         >
                             ×
                         </button>
-                        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+
+                        {/* Header */}
+                        <h2 className="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
                             {selectedGuide.name}
                         </h2>
 
-                        <div className="space-y-2 text-sm text-gray-700">
+                        {/* Image Section */}
+                        <div className="flex justify-center gap-6 mb-6">
+                            {["id_image1", "id_image2"].map((key) => {
+                                const imgUrl = `${process.env.NEXT_PUBLIC_API_URL}/${selectedGuide[key].replace(/\\/g, "/")}`
+                                return (
+                                    <img
+                                        key={key}
+                                        src={imgUrl}
+                                        alt={key}
+                                        onClick={() => setPreviewImage(imgUrl)} // 👈 open preview
+                                        className="w-52 h-52 object-cover rounded-lg border cursor-pointer hover:scale-105 transition-transform duration-200"
+                                    />
+                                )
+                            })}
+                        </div>
+
+                        {/* Info Section */}
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
                             <p>
                                 <strong>Email:</strong> {selectedGuide.email}
                             </p>
@@ -246,31 +269,32 @@ export default function LocalGuidesPage() {
                                 <strong>Language:</strong>{" "}
                                 {selectedGuide.language}
                             </p>
-                            <p>
+                            <p className="col-span-2">
                                 <strong>Bio:</strong> {selectedGuide.bio}
                             </p>
-                            <p>
+                            <p className="col-span-2">
                                 <strong>Status:</strong>{" "}
                                 {selectedGuide.status ? (
-                                    <span className="text-green-600">
+                                    <span className="text-green-600 font-medium">
                                         Verified
                                     </span>
                                 ) : (
-                                    <span className="text-gray-500">
+                                    <span className="text-gray-500 font-medium">
                                         Disabled
                                     </span>
                                 )}
                             </p>
                         </div>
 
-                        <div className="mt-6 flex justify-end gap-2">
+                        {/* Buttons */}
+                        <div className="mt-8 flex justify-end gap-3 flex-wrap">
                             {!selectedGuide.status && (
                                 <button
                                     onClick={() =>
                                         handleApprove(selectedGuide.user_id)
                                     }
                                     disabled={approving}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+                                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium"
                                 >
                                     {approving ? "Approving..." : "Approve"}
                                 </button>
@@ -281,7 +305,7 @@ export default function LocalGuidesPage() {
                                         handleDisable(selectedGuide.guide_id)
                                     }
                                     disabled={disabling}
-                                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-md text-sm font-medium flex items-center gap-1"
                                 >
                                     <FaBan />
                                     {disabling ? "Disabling..." : "Disable"}
@@ -292,19 +316,39 @@ export default function LocalGuidesPage() {
                                     handleDelete(selectedGuide.guide_id)
                                 }
                                 disabled={deleting}
-                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-md text-sm font-medium flex items-center gap-1"
                             >
                                 <FaTrash />
                                 {deleting ? "Deleting..." : "Delete"}
                             </button>
                             <button
                                 onClick={() => setSelectedGuide(null)}
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2 rounded-md text-sm font-medium"
                             >
                                 Close
                             </button>
                         </div>
                     </div>
+
+                    {/* 👇 Full Image Preview Overlay */}
+                    {previewImage && (
+                        <div
+                            className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]"
+                            onClick={() => setPreviewImage(null)}
+                        >
+                            <img
+                                src={previewImage}
+                                alt="Preview"
+                                className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl border-4 border-white object-contain"
+                            />
+                            <button
+                                onClick={() => setPreviewImage(null)}
+                                className="absolute top-6 right-10 text-white text-3xl font-bold hover:text-gray-300"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </main>

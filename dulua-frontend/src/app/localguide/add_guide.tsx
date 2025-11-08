@@ -7,7 +7,7 @@ import { z } from "zod"
 import { IPlace } from "@api/core"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useSelector } from "react-redux"
-import { redirect } from "next/navigation"
+import { redirect, RedirectType, useRouter } from "next/navigation"
 
 const localGuideSchema = z.object({
     id_image1: z
@@ -42,7 +42,7 @@ export default function LocalGuideForm({ places }: { places: IPlace[] }) {
         id_image2: undefined,
     })
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
-
+    const router = useRouter()
     const {
         register,
         handleSubmit,
@@ -127,7 +127,8 @@ export default function LocalGuideForm({ places }: { places: IPlace[] }) {
 
             if (res.ok) {
                 reset()
-                redirect("/localguide/thankyou")
+                console.log("Local guide added successfully")
+                router.push("/localguide/thankyou")
             } else {
                 const result = await res.json()
                 console.log("Error adding local guide:", result)
@@ -153,6 +154,9 @@ export default function LocalGuideForm({ places }: { places: IPlace[] }) {
                 <h2 className="text-2xl font-bold text-left text-gray-700 mb-10">
                     Step {step} - Enter your details
                 </h2>
+                {errorMsg && (
+                    <p className="text-red-500 text-lg mb-4">{errorMsg}</p>
+                )}
             </div>
 
             <form

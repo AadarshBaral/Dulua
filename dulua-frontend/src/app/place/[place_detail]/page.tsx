@@ -91,7 +91,7 @@ export default async function PlaceDetail({ params }: Props) {
     ]
 
     return (
-        <div className="px-8 py-8 max-w-6xl mx-20">
+        <div className="px-8 py-8 max-w-6xl mx-auto">
             {/* Breadcrumb / Page Title */}
             <div className="flex items-center gap-2 mb-6">
                 <span className="text-gray-500">Pokhara</span>
@@ -176,8 +176,13 @@ export default async function PlaceDetail({ params }: Props) {
                                     lng: parseFloat(
                                         placeData?.longitude as string
                                     ),
+                                    average_cleanliness:
+                                        placeData?.average_cleanliness as number,
+                                    average_place_rating:
+                                        placeData?.average_rating as number,
                                     description:
                                         placeData?.description as string,
+
                                     image:
                                         placeData?.featured_image_main ||
                                         "/default.png",
