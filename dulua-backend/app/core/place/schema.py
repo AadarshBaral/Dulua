@@ -50,6 +50,8 @@ class PublicPlace(GeolocationCreate):
     featured: bool
     featured_image_main: str
     featured_image_secondary:  Optional[str] = None
+    average_cleanliness: float = 0
+    average_place_rating: float = 0
 
 
 class CategoryCreate(BaseModel):

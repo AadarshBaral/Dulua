@@ -1,19 +1,32 @@
-export default function ThankYouPage() {
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
+
+function ThankYou() {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-6">
-            <div className="bg-white shadow-lg rounded-xl p-8 text-center max-w-md">
-                <h1 className="text-3xl font-bold text-green-600 mb-4">
-                    Thank You!
+        <div className="flex flex-col items-center justify-center min-h-[80vh] ">
+            {/* Thank You Section */}
+            <div className="text-center flex flex-col items-center justify-center">
+                <h1 className="text-[#1F4037] font-bold text-5xl mb-4">
+                    Thank You
                 </h1>
-                <p className="text-gray-700 mb-3">
-                    Your Local Guide application has been submitted
-                    successfully.
+                <h2 className="text-xl font-semibold text-[#585858] mb-4">
+                    Your application is being processed
+                </h2>
+                <p className="text-[#585858] mb-6">
+                    We will notify you when your application gets approved.
                 </p>
-                <p className="text-gray-600">
-                    Our admin team will review your information and approve your
-                    profile shortly.
-                </p>
+
+                {/* Back to Home Button */}
+                <Link
+                    href="/"
+                    className="flex items-center gap-x-2 bg-[#1F4037] text-white w-[180px] h-[40px] rounded-[8px] px-[20px] py-[8px] text-[14px] cursor-pointer"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Home
+                </Link>
             </div>
         </div>
     )
 }
+
+export default ThankYou

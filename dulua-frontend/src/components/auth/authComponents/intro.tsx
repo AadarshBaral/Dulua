@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc"
 import { Step } from "../authLayout"
 import Image from "next/image"
 import AuthLogo from "@components/ui/authLogo"
+import { FiLogIn } from "react-icons/fi"
 
 const Intro = ({
     loginStart,
@@ -30,17 +31,17 @@ const Intro = ({
                     size={"lg"}
                     onClick={loginStart}
                 >
-                    <FcGoogle />
-                    <p>Sign In With Google</p>
+                    <FiLogIn />
+                    <p>Login to Dulua</p>
                 </Button>
                 <Button
                     variant={"outline"}
                     className="flex justify-center items-center w-full h-12"
                     size={"lg"}
-                    onClick={loginStart}
+                    onClick={() => changePageState("register")}
                 >
                     <Mail />
-                    <p>Sign In With Email</p>
+                    <p>Join Dulua</p>
                 </Button>
                 {/* <div className="text-center flex items-center justify-center gap-1 text-sm text-[var(--input-text)]">
                     <p onClick={() => changePageState("register")}>

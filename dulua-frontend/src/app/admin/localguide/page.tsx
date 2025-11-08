@@ -3,6 +3,7 @@
 import { Button } from "@components/ui/button"
 import { useEffect, useState } from "react"
 import { FiUserCheck } from "react-icons/fi"
+import { FaTrash, FaBan } from "react-icons/fa"
 
 interface LocalGuide {
     guide_id: string
@@ -14,7 +15,7 @@ interface LocalGuide {
     address: string
     bio: string
     language: string
-    verified: boolean
+    status: boolean
 }
 
 export default function LocalGuidesPage() {
@@ -22,13 +23,15 @@ export default function LocalGuidesPage() {
     const [selectedGuide, setSelectedGuide] = useState<LocalGuide | null>(null)
     const [loading, setLoading] = useState(true)
     const [approving, setApproving] = useState(false)
+    const [disabling, setDisabling] = useState(false)
+    const [deleting, setDeleting] = useState(false)
 
     // ✅ Fetch all guides on page load
     const fetchGuides = async () => {
         try {
             setLoading(true)
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/local_guide/getAllLocalGuides`,
+                `${process.env.NEXT_PUBLIC_API_URL}/local_guide/getAllLocalGuidesAdmin`,
                 {
                     headers: {
                         Authorization: `bearer ${localStorage.getItem("token") || ""}`,
@@ -36,7 +39,7 @@ export default function LocalGuidesPage() {
                 }
             )
             const data = await res.json()
-            setGuides(data)
+            setGuides(Array.isArray(data) ? data : [])
         } catch (err) {
             console.error("Failed to fetch local guides:", err)
         } finally {
@@ -44,7 +47,7 @@ export default function LocalGuidesPage() {
         }
     }
 
-    // ✅ Approve guide
+    // 🟢 Approve guide
     const handleApprove = async (userId: string) => {
         setApproving(true)
         try {
@@ -61,12 +64,69 @@ export default function LocalGuidesPage() {
             if (!res.ok) throw new Error("Failed to verify guide")
             alert("Guide verified successfully ✅")
             setSelectedGuide(null)
-            fetchGuides() // refresh list
+            fetchGuides()
         } catch (error) {
             console.error(error)
             alert("Error verifying guide")
         } finally {
             setApproving(false)
+        }
+    }
+
+    // 🟡 Disable guide (soft deactivate)
+    const handleDisable = async (guideId: string) => {
+        if (!confirm("Are you sure you want to disable this guide?")) return
+
+        setDisabling(true)
+        try {
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/local_guide/disableLocalGuide/${guideId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                }
+            )
+
+            if (!res.ok) throw new Error("Failed to disable guide")
+            alert("Guide disabled successfully 🚫")
+            setSelectedGuide(null)
+            fetchGuides()
+        } catch (error) {
+            console.error(error)
+            alert("Error disabling guide")
+        } finally {
+            setDisabling(false)
+        }
+    }
+
+    // 🔴 Delete guide (hard delete)
+    const handleDelete = async (guideId: string) => {
+        if (!confirm("This will permanently delete the guide. Continue?"))
+            return
+
+        setDeleting(true)
+        try {
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/local_guide/deleteLocalGuide/${guideId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                }
+            )
+
+            if (!res.ok) throw new Error("Failed to delete guide")
+            alert("Guide deleted permanently 🗑️")
+            setSelectedGuide(null)
+            fetchGuides()
+        } catch (error) {
+            console.error(error)
+            alert("Error deleting guide")
+        } finally {
+            setDeleting(false)
         }
     }
 
@@ -82,13 +142,13 @@ export default function LocalGuidesPage() {
         )
 
     return (
-        <main className="p-8 max-w-[1280px] mx-auto">
+        <main className="p-8 max-w-[1280px] h-[calc(100vh-4rem)] mx-auto">
             <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
                 Local Guide Applications
             </h1>
 
             {/* Table */}
-            <div className="overflow-x-auto bg-white shadow-md rounded-xl border border-gray-100">
+            <div className="overflow-x-auto bg-white rounded-xl border border-gray-100">
                 <table className="w-full border-collapse">
                     <thead className="bg-gray-50">
                         <tr>
@@ -119,23 +179,32 @@ export default function LocalGuidesPage() {
                                 <td className="px-4 py-3">{guide.email}</td>
                                 <td className="px-4 py-3">{guide.contact}</td>
                                 <td className="px-4 py-3">
-                                    {guide.verified ? (
+                                    {guide.status ? (
                                         <span className="text-green-600 font-semibold">
                                             Verified
                                         </span>
                                     ) : (
-                                        <span className="text-yellow-500 font-semibold">
-                                            Pending
+                                        <span className="text-gray-400 font-semibold">
+                                            Disabled
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className="px-4 py-3 flex gap-2">
                                     <Button
                                         variant="outline"
                                         onClick={() => setSelectedGuide(guide)}
                                         className="text-sm flex items-center gap-1"
                                     >
                                         <FiUserCheck /> View
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={() =>
+                                            handleDelete(guide.guide_id)
+                                        }
+                                        className="text-sm flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white"
+                                    >
+                                        <FaTrash />
                                     </Button>
                                 </td>
                             </tr>
@@ -182,20 +251,20 @@ export default function LocalGuidesPage() {
                             </p>
                             <p>
                                 <strong>Status:</strong>{" "}
-                                {selectedGuide.verified ? (
+                                {selectedGuide.status ? (
                                     <span className="text-green-600">
                                         Verified
                                     </span>
                                 ) : (
-                                    <span className="text-yellow-500">
-                                        Pending
+                                    <span className="text-gray-500">
+                                        Disabled
                                     </span>
                                 )}
                             </p>
                         </div>
 
                         <div className="mt-6 flex justify-end gap-2">
-                            {!selectedGuide.verified && (
+                            {!selectedGuide.status && (
                                 <button
                                     onClick={() =>
                                         handleApprove(selectedGuide.user_id)
@@ -206,6 +275,28 @@ export default function LocalGuidesPage() {
                                     {approving ? "Approving..." : "Approve"}
                                 </button>
                             )}
+                            {selectedGuide.status && (
+                                <button
+                                    onClick={() =>
+                                        handleDisable(selectedGuide.guide_id)
+                                    }
+                                    disabled={disabling}
+                                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                >
+                                    <FaBan />
+                                    {disabling ? "Disabling..." : "Disable"}
+                                </button>
+                            )}
+                            <button
+                                onClick={() =>
+                                    handleDelete(selectedGuide.guide_id)
+                                }
+                                disabled={deleting}
+                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-1"
+                            >
+                                <FaTrash />
+                                {deleting ? "Deleting..." : "Delete"}
+                            </button>
                             <button
                                 onClick={() => setSelectedGuide(null)}
                                 className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md"

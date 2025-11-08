@@ -131,15 +131,43 @@ async def add_category(category: CategoryCreate, session: Session = Depends(get_
 async def get_place(request: Request, place_id: UUID, session: Session = Depends(get_session)):
     print('hi', place_id)
     baseurl = str(request.base_url).rstrip("/")
+
+    # Fetch the place using place_id
     place = session.exec(select(Place).where(
         Place.place_id == place_id)).first()
     if not place:
         raise HTTPException(status_code=400, detail="Place not found")
+
+    # Get related geo_location
     geo_location = session.exec(select(Geolocation).where(
         Geolocation.geo_location_id == place.geo_location_id)).first()
+
+    # Get related city
     city = session.exec(select(City).where(
-        Place.city_id == place.city_id)).first()
+        City.city_id == place.city_id)).first()
+
+    # Convert categories to response model
     categories = [CategoryRead.model_validate(cat) for cat in place.categories]
+
+    # Get all reviews for the place
+    reviews = session.exec(select(Review).where(
+        Review.place_id == place.place_id)).all()
+
+    if reviews:
+        # Aggregate cleanliness and place ratings
+        cleanliness_ratings = [review.cleanliness for review in reviews]
+        place_ratings = [review.rating for review in reviews]
+
+        # Calculate average cleanliness and place ratings
+        average_cleanliness = sum(
+            cleanliness_ratings) / len(cleanliness_ratings) if cleanliness_ratings else 0
+        average_place_rating = sum(place_ratings) / \
+            len(place_ratings) if place_ratings else 0
+    else:
+        average_cleanliness = 0
+        average_place_rating = 0
+
+    # Create PublicPlace object
     place_result = PublicPlace(
         place_id=place.place_id,
         city_id=city.city_id,
@@ -151,9 +179,11 @@ async def get_place(request: Request, place_id: UUID, session: Session = Depends
         category=categories,
         featured=place.featured,
         featured_image_main=f"{baseurl}/city/images/places/{place.featured_image_main}",
-        featured_image_secondary=f"{baseurl}/city/images/places/{place.featured_image_secondary}"
-
+        featured_image_secondary=f"{baseurl}/city/images/places/{place.featured_image_secondary}",
+        average_cleanliness=average_cleanliness,
+        average_place_rating=average_place_rating
     )
+
     return place_result
 
 
@@ -357,7 +387,7 @@ async def get_reviews(request: Request, place_id: UUID, session=Depends(get_sess
 async def all_places(request: Request, session: Session = Depends(get_session)):
     places = session.exec(select(Place)).all()
     baseurl = str(request.base_url).rstrip("/")
-    print(places)
+
     if not places:
         raise HTTPException(status_code=400, detail="No places found")
 
@@ -379,6 +409,26 @@ async def all_places(request: Request, session: Session = Depends(get_session)):
         categories = [CategoryRead.model_validate(
             cat) for cat in place.categories]
 
+        # Get all reviews for the place
+        reviews = session.exec(
+            select(Review).where(Review.place_id == place.place_id)
+        ).all()
+
+        if reviews:
+            # Aggregate cleanliness and place ratings
+            cleanliness_ratings = [review.cleanliness for review in reviews]
+            place_ratings = [review.rating for review in reviews]
+
+            # Calculate average cleanliness and place ratings
+            average_cleanliness = sum(
+                cleanliness_ratings) / len(cleanliness_ratings) if cleanliness_ratings else 0
+            average_place_rating = sum(
+                place_ratings) / len(place_ratings) if place_ratings else 0
+        else:
+            average_cleanliness = 0
+            average_place_rating = 0
+
+        # Create PublicPlace object with the aggregated ratings
         place_result = PublicPlace(
             place_id=place.place_id,
             city_id=city.city_id,
@@ -391,6 +441,8 @@ async def all_places(request: Request, session: Session = Depends(get_session)):
             featured=place.featured,
             featured_image_main=f"{baseurl}/city/images/places/{place.featured_image_main}",
             featured_image_secondary=f"{baseurl}/city/images/places/{place.featured_image_secondary}",
+            average_cleanliness=average_cleanliness,
+            average_place_rating=average_place_rating
         )
 
         place_results.append(place_result)
