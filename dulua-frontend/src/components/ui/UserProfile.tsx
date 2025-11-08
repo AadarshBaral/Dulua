@@ -20,7 +20,7 @@ const UserProfile = () => {
 
             {/* Main Card */}
 
-            <div className="absolute w-[500px] mb-10  md:w-[600px] lg:w-[1080px] h-[230px] top-[158px] left-[50%] transform -translate-x-1/2 flex flex-col border-[1px] rounded-[32px] bg-white/85">
+            <div className="absolute w-[500px]   md:w-[600px] lg:w-[1080px] h-[230px] top-[158px] left-[50%] transform -translate-x-1/2 flex flex-col border-[1px] rounded-[32px] bg-white/85">
                 <UserProfileTabs user={user} />
             </div>
         </div>

@@ -13,6 +13,7 @@ import { Step } from "../authLayout"
 import { registerUser } from "@api/auth"
 import Image from "next/image"
 import AuthLogo from "@components/ui/authLogo"
+import toast from "react-hot-toast"
 function RegisterForm({
     registerEnd,
     changePageState,
@@ -32,17 +33,27 @@ function RegisterForm({
     })
 
     const onSubmit = async (data: RegisterFormInputs) => {
-        setLoading(true)
-        const response = await registerUser({ data })
-        localStorage.setItem("email", data.email)
-        if (response.status === 200) {
-            changePageState("verifyCode")
-        } else {
-            console.error("Registration failed", response.data)
-        }
-        setLoading(false)
-    }
+        try {
+            setLoading(true)
 
+            const response = await registerUser({ data })
+            localStorage.setItem("email", data.email)
+
+            if (response.status === 200) {
+                changePageState("verifyCode") // go to next step
+            } else {
+                toast.error(
+                    response.data?.message ||
+                        "Registration failed. Please try again."
+                )
+            }
+        } catch (error) {
+            console.error("Registration error:", error)
+            toast.error("Network error. Please check your connection.")
+        } finally {
+            setLoading(false)
+        }
+    }
     return (
         <div className="h-auto flex items-center justify-center rounded-xl w-full">
             <form

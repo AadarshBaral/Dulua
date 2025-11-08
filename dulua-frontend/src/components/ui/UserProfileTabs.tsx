@@ -7,6 +7,7 @@ import { useAppDispatch } from "@lib/hooks"
 import { logout } from "store/appSlice/authSlice"
 import { redirect } from "next/navigation"
 import { bookmarksApi, useGetBookmarksQuery } from "store/fetchBookmarks"
+import { useRouter } from "next/navigation"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL // e.g. http://localhost:8000
 
@@ -17,7 +18,7 @@ const UserProfileTabs = ({ user }: { user: any }) => {
     const [loadingProfile, setLoadingProfile] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const dispatch = useAppDispatch()
-
+    const router = useRouter()
     const { data: bookmarks = [], isLoading, isError } = useGetBookmarksQuery()
 
     // ✅ Fetch full user profile info by user.id
@@ -40,6 +41,19 @@ const UserProfileTabs = ({ user }: { user: any }) => {
 
         fetchProfile()
     }, [user?.id])
+
+    const handleLogout = async () => {
+        try {
+            await fetch("/api/logout", { method: "GET" })
+            localStorage.removeItem("token")
+            sessionStorage.clear()
+            dispatch(logout())
+            dispatch(bookmarksApi.util.resetApiState())
+            router.push("/")
+        } catch (err) {
+            console.error("Logout failed:", err)
+        }
+    }
 
     // ✅ Handle image change and upload
     const handleImageChange = async (
@@ -87,9 +101,7 @@ const UserProfileTabs = ({ user }: { user: any }) => {
             <p
                 className="self-end text-red-500 cursor-pointer"
                 onClick={() => {
-                    dispatch(logout())
-                    dispatch(bookmarksApi.util.resetApiState())
-                    redirect("/")
+                    handleLogout()
                 }}
             >
                 Logout

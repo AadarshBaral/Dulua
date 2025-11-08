@@ -7,6 +7,7 @@ import DuluaNav from "@components/ui/DuluaNav"
 import Footer from "@components/ui/Footer"
 import { FloatingDock } from "@components/ui/FloatingDock"
 import { links } from "@lib/DockItems"
+import { Toaster } from "react-hot-toast"
 
 const inter = Manrope({
     subsets: ["latin"],
@@ -31,6 +32,15 @@ export default function RootLayout({
                     className={inter.className}
                     style={{ position: "relative" }}
                 >
+                    <Toaster
+                        position="top-center"
+                        toastOptions={{
+                            style: {
+                                zIndex: 99999,
+                            },
+                        }}
+                        reverseOrder={false}
+                    />
                     <div className="cont fixed bottom-10 z-95 left-[50%] -translate-x-[50%] flex justify-center items-center">
                         <FloatingDock items={links} />
                     </div>

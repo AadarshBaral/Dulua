@@ -17,7 +17,7 @@ export const MapLoader = ({
     if (!navigator.geolocation) {
         alert("Geolocation is not supported by your browser")
     }
-    console.log("burrrra", places)
+    console.log("theseare Placees", places)
     const Map = useMemo(
         () =>
             dynamic(() => import("@components/ui/MapRenderer"), {

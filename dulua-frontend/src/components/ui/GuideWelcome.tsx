@@ -1,14 +1,30 @@
-import Image from "next/image"
-import { Redirect } from "next"
-import React from "react"
-import Link from "next/link"
+"use client"
 
-const GuideWelcomCard = () => {
+import Image from "next/image"
+import Link from "next/link"
+import React from "react"
+import { useRouter } from "next/navigation"
+import toast from "react-hot-toast"
+import { openModal } from "store/appSlice/modalStore"
+import { useDispatch } from "react-redux"
+
+const GuideWelcomeCard = () => {
+    const router = useRouter()
+    const dispatch = useDispatch()
+    const handleGuideClick = () => {
+        const token = localStorage.getItem("token") // ✅ check login token
+        if (token) {
+            router.push("/localguide")
+        } else {
+            dispatch(openModal())
+        }
+    }
+
     return (
-        <div className="relative rounded-[3rem] overflow-hidden w-full  mx-auto h-[300px] flex items-center justify-center">
+        <div className="relative rounded-[3rem] overflow-hidden w-full mx-auto h-[300px] flex items-center justify-center">
             {/* Background Image */}
             <Image
-                src="/pokhara.png" // Update this path to be in /public
+                src="/pokhara.png"
                 alt="Pokhara Background"
                 fill
                 className="object-cover"
@@ -25,17 +41,18 @@ const GuideWelcomCard = () => {
                 </h2>
                 <p className="text-white text-sm md:text-lg mb-4 max-w-xl mx-auto">
                     Share your knowledge of Pokhara and help travelers discover
-                    hidden gems while promoting sustainable tourism
+                    hidden gems while promoting sustainable tourism.
                 </p>
-                <Link
-                    href="/localguide"
-                    className="bg-lime-400 hover:bg-lime-500 text-black font-medium px-6 py-2 rounded-full shadow"
+
+                <button
+                    onClick={handleGuideClick}
+                    className="bg-lime-400 hover:bg-lime-500 text-black font-medium px-6 py-2 rounded-full shadow transition"
                 >
                     Register as a guide
-                </Link>
+                </button>
             </div>
         </div>
     )
 }
 
-export default GuideWelcomCard
+export default GuideWelcomeCard
