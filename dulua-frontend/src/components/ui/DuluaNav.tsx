@@ -70,7 +70,9 @@ const DuluaNav = ({
                     <div className="profille-img rounded-full h-8 w-8 bg-neutral-400"></div>
                 </Link>
             ) : (
-                <Button onClick={() => dispatch(openModal())}>Login</Button>
+                <Button onClick={() => dispatch(openModal())}>
+                    Get Started
+                </Button>
             )}
         </div>
     )

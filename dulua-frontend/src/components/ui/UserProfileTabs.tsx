@@ -6,7 +6,7 @@ import PlaceCard from "./PlaceCard"
 import { useAppDispatch } from "@lib/hooks"
 import { logout } from "store/appSlice/authSlice"
 import { redirect } from "next/navigation"
-import { useGetBookmarksQuery } from "store/fetchBookmarks"
+import { bookmarksApi, useGetBookmarksQuery } from "store/fetchBookmarks"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL // e.g. http://localhost:8000
 
@@ -88,6 +88,7 @@ const UserProfileTabs = ({ user }: { user: any }) => {
                 className="self-end text-red-500 cursor-pointer"
                 onClick={() => {
                     dispatch(logout())
+                    dispatch(bookmarksApi.util.resetApiState())
                     redirect("/")
                 }}
             >
@@ -148,7 +149,7 @@ const UserProfileTabs = ({ user }: { user: any }) => {
             </div>
 
             {/* ✅ Favorites Section (Only visible section now) */}
-            <div className="my-10">
+            <div className="my-16">
                 <p className="text-2xl font-semibold mb-6">Favorites</p>
 
                 {isLoading ? (

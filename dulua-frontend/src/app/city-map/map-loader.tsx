@@ -12,6 +12,7 @@ export const MapLoader = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    console.log("places", places)
     // ✅ Fetch all places from backend
     useEffect(() => {
         const fetchPlaces = async () => {
@@ -28,6 +29,8 @@ export const MapLoader = () => {
                     lng: p.longitude,
                     description: p.description,
                     featured: p.featured,
+                    average_place_rating: p.average_place_rating,
+                    average_cleanliness: p.average_cleanliness,
                     image: p.featured_image_main,
                     category: p.category?.map((c: any) => c.name).join(", "),
                 }))

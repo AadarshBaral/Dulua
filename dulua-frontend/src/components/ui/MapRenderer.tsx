@@ -8,11 +8,11 @@ import "leaflet/dist/leaflet.css"
 import "leaflet-routing-machine"
 import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
-
 import { Place } from "@lib/types"
 import { ILocation } from "@hooks/useCurrentLocation"
 import Sidebar from "./Sidebar"
 import { cn } from "@lib/utils"
+import Heatmap from "./Heatmap"
 
 const MyLocationIcon = new L.Icon({
     iconUrl: "/usermarker.png",
@@ -45,6 +45,12 @@ function MapRenderer({
     const [route, setRoute] = useState<LatLngTuple[]>([])
     const [directions, setDirections] = useState<Step[]>([])
     const [mapInstance, setMapInstance] = useState<LeafletMap | null>(null)
+    const [heatmapEnabled, setHeatmapEnabled] = useState(false)
+
+    // Toggle heatmap visibility
+    const toggleHeatmap = () => {
+        setHeatmapEnabled((prev) => !prev)
+    }
 
     const handleGetDirections = (dest: Place) => {
         if (!location) return
@@ -54,10 +60,12 @@ function MapRenderer({
         setSelectedPlace(dest)
     }
 
+    console.log("loc", mapData)
+
     return (
-        <div className={cn("relative h-32 w-32", className)}>
+        <div className={cn("relative h-[500px] w-full", className)}>
             <MapContainer
-                center={[28.2096, 83.9856]}
+                center={[28.2096, 83.9856]} // Default center (Pokhara)
                 zoom={13}
                 scrollWheelZoom
                 //@ts-ignore
@@ -69,7 +77,7 @@ function MapRenderer({
                     attribution="&copy; OpenStreetMap contributors"
                 />
 
-                {location && (
+                {location && !heatmapEnabled && (
                     <Marker
                         position={[location.latitude, location.longitude]}
                         icon={MyLocationIcon}
@@ -78,16 +86,17 @@ function MapRenderer({
                     </Marker>
                 )}
 
-                {mapData.map((data, index) => (
-                    <Marker
-                        key={index}
-                        position={[data.lat, data.lng]}
-                        icon={PlaceIcon}
-                        eventHandlers={{
-                            click: () => setSelectedPlace(data),
-                        }}
-                    />
-                ))}
+                {!heatmapEnabled &&
+                    mapData.map((data, index) => (
+                        <Marker
+                            key={index}
+                            position={[data.lat, data.lng]}
+                            icon={PlaceIcon}
+                            eventHandlers={{
+                                click: () => setSelectedPlace(data),
+                            }}
+                        />
+                    ))}
 
                 {route.length === 2 && (
                     <RouteLine
@@ -95,6 +104,17 @@ function MapRenderer({
                         setDirections={setDirections}
                     />
                 )}
+
+                {/* Pass the heatmapEnabled state to the Heatmap component */}
+                <Heatmap
+                    heatmapEnabled={heatmapEnabled}
+                    addressPoints={mapData.map((place) => [
+                        place.lat,
+                        place.lng,
+                        // ((5 - place.average_cleanliness) / 5) * 100,
+                        (place.average_cleanliness / 5) * 100,
+                    ])}
+                />
             </MapContainer>
 
             {selectedPlace && sidebar && location && (
@@ -111,6 +131,14 @@ function MapRenderer({
                     onGetDirections={() => handleGetDirections(selectedPlace)}
                 />
             )}
+
+            {/* Heatmap Toggle Button */}
+            <button
+                onClick={toggleHeatmap}
+                className="absolute top-4 left-4 bg-blue-600 text-white p-2 rounded-full"
+            >
+                {heatmapEnabled ? "Disable Heatmap" : "Enable Heatmap"}
+            </button>
         </div>
     )
 }

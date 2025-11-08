@@ -47,6 +47,22 @@ export const fetchPlaces = async (): Promise<IPlace[] | null> => {
         return null
     }
 }
+// In your API utility file (e.g., `@api/core`)
+
+export const checkUserStatus = async (token: string) => {
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/local_guide/checkIfLocalGuide`,
+        {
+            method: "GET",
+            headers: {
+                Authorization: `bearer ${token}`,
+            },
+        }
+    )
+
+    const data = await res.json()
+    return data // Assuming this returns `{ can_fill_form: boolean, message: string }`
+}
 
 // export const getGuides = await fetch(
 //     `${process.env.NEXT_PUBLIC_API_URL}/getAllLocalGuides`,

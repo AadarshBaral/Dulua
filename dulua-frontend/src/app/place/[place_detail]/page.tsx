@@ -55,16 +55,26 @@ export async function generateMetadata({
 export default async function PlaceDetail({ params }: Props) {
     const { place_detail } = await params
     const placeData = await getPlace(place_detail)
+    console.log(placeData)
     const guides = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/local_guide/getAllLocalGuides`,
+        `${process.env.NEXT_PUBLIC_API_URL}/local_guide/getAllLocalGuides/${placeData?.place_id}`,
         {
             method: "GET",
-            cache: "no-store", // ensures fresh data every load
+            cache: "no-store",
         }
-    ).then((res) => res.json())
+    ).then(async (res) => {
+        const responseBody = await res.text() // Get the raw response body
+        console.log("Response body:", responseBody)
+        try {
+            return JSON.parse(responseBody) // Try parsing manually to check validity
+        } catch (e) {
+            console.error("Invalid JSON response", e)
+            throw new Error("Failed to parse JSON response")
+        }
+    })
 
     console.log("Guides:", guides)
-
+    console.log(guides)
     const markdown = `# Just a link: https://reactjs.com.`
 
     const images = [
@@ -79,6 +89,7 @@ export default async function PlaceDetail({ params }: Props) {
             subtitle: "Discover the beauty!",
         },
     ]
+
     return (
         <div className="px-8 py-8 max-w-6xl mx-20">
             {/* Breadcrumb / Page Title */}
@@ -114,31 +125,37 @@ export default async function PlaceDetail({ params }: Props) {
                                 Local Guides around {placeData?.name}
                             </p>
                             <div className="cont flex flex-row gap-4">
-                                {guides.map((guide, idx) => (
-                                    <div className="guide w-fit border-2 border-gray-100 rounded-3xl p-6 flex flex-col ">
-                                        <div className="cont h-48 w-48 rounded-full bg-gray-200">
-                                            <Image
-                                                src={
-                                                    guide.profile_picture ||
-                                                    "/default.png"
-                                                }
-                                                alt={guide.name}
-                                                height={192}
-                                                width={192}
-                                                className="rounded-full object-cover h-48 w-48"
-                                            />
-                                        </div>
-                                        <div className="info mt-4 flex flex-col justify-center items-center gap-2">
-                                            <h3 className="text-lg font-semibold">
-                                                {guide.name}
-                                            </h3>
-                                            <div className="cont flex items-center gap-1 py-2 px-6 border-2 border-gray-200 rounded-full mt-1">
-                                                <FaPhone className="text-accent" />{" "}
-                                                <p>{guide.contact}</p>
+                                {guides && guides.length > 0 ? (
+                                    guides.map((guide, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="guide w-fit border-2 border-gray-100 rounded-3xl p-6 flex flex-col"
+                                        >
+                                            <div className="cont h-48 w-48 rounded-full bg-gray-200">
+                                                <Image
+                                                    src={`${process.env.NEXT_PUBLIC_API_URL}${guide.profile_image || "/default.png"}`}
+                                                    alt={guide.name}
+                                                    height={192}
+                                                    width={192}
+                                                    className="rounded-full object-cover h-48 w-48"
+                                                />
+                                            </div>
+                                            <div className="info mt-4 flex flex-col justify-center items-center gap-2">
+                                                <h3 className="text-lg font-semibold">
+                                                    {guide.name}
+                                                </h3>
+                                                <div className="cont flex items-center gap-1 py-2 px-6 border-2 border-gray-200 rounded-full mt-1">
+                                                    <FaPhone className="text-accent" />
+                                                    <p>{guide.contact}</p>
+                                                </div>
                                             </div>
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center text-gray-500">
+                                        No active guides found for this place
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     </div>

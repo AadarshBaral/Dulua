@@ -10,6 +10,8 @@ import { useAppSelector } from "@lib/hooks"
 import { RootState } from "store/store"
 import { useAddReviewMutation, useGetReviewsQuery } from "store/fetchReviews"
 import { cn } from "@lib/utils"
+import { openModal } from "store/appSlice/modalStore"
+import { useDispatch } from "react-redux"
 
 export default function ReviewsSection({
     place_id,
@@ -39,7 +41,7 @@ export default function ReviewsSection({
             onCloseModal?.()
         }
     }, [openFromTabs])
-
+    const dispatch = useDispatch()
     const [isGalleryOpen, setIsGalleryOpen] = useState(false)
     const [galleryImages, setGalleryImages] = useState<
         {
@@ -185,7 +187,15 @@ export default function ReviewsSection({
 
             {/* ------------------ Write Review Button ------------------ */}
             <div className="flex justify-end">
-                <Button onClick={() => setIsModalOpen(true)}>
+                <Button
+                    onClick={() => {
+                        if (!token) {
+                            dispatch(openModal()) // Open login modal if user is not logged in
+                            return
+                        }
+                        setIsModalOpen(true)
+                    }}
+                >
                     <Pen /> Write a Review
                 </Button>
             </div>

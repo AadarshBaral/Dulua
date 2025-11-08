@@ -39,7 +39,7 @@ function LoginForm({
 
     const onSubmit = async (data: LoginFormInputs) => {
         const result = await dispatch(loginUser(data))
-
+        console.log("Login Result:", result)
         if (loginUser.fulfilled.match(result)) {
             await dispatch(
                 fetchUserProfile({
@@ -55,11 +55,11 @@ function LoginForm({
         <div className="h-auto flex items-center justify-center rounded-xl w-full">
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex flex-col gap-4 w-full"
+                className="flex flex-col gap-4 w-full max-w-sm"
             >
                 <div className="intro flex flex-col gap-2">
                     <AuthLogo />
-                    <p className="text-3xl font-bold break-words max-w-sm">
+                    <p className="text-3xl font-bold break-words">
                         Welcome Back
                     </p>
                 </div>
