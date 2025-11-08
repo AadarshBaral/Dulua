@@ -22,8 +22,8 @@ class LocalGuide(SQLModel, table=True):
     address: str = Field(index=True, nullable=False)
     contact: int = Field(index=True, nullable=False)
     email: EmailStr = Field(index=True, nullable=False)
-    user: "UserDB" = Relationship(back_populates="local_guides")
     bio: str = Field(index=True, nullable=False)
     language: str = Field(index=True, nullable=False)
+    status: bool = Field(default=False, nullable=False)  # ✅ Added field
     user: "UserDB" = Relationship(back_populates="local_guides")
     place: "Place" = Relationship(back_populates="guides")

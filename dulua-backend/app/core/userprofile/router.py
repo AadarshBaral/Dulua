@@ -1,3 +1,5 @@
+from sqlmodel import select
+from fastapi import HTTPException, Request
 from fastapi import File, UploadFile, Form
 import os
 import shutil
@@ -109,7 +111,21 @@ async def update_user_profile_image(
     session.refresh(profile)
     return profile
 
-    session.add(profile)
-    session.commit()
-    session.refresh(profile)
-    return profile
+
+@router.get("/{user_id}/image")
+def get_profile_image_by_user_id(request: Request,
+                                 user_id: UUID, session: Session = Depends(get_session)
+                                 ):
+    # Fetch the user profile by user_id
+    profile = session.exec(
+        select(UserProfile).where(UserProfile.userdb_id == user_id)
+    ).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+
+    # Check if the user has a profile image
+    if not profile.image:
+        raise HTTPException(status_code=404, detail="Profile image not found")
+
+    return {"image_url": profile.iamge}

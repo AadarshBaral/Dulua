@@ -1,4 +1,5 @@
 import random
+from pydantic import BaseModel
 from sqlmodel import Session, select  # type: ignore
 from .models import PendingRegistration,  UserDB
 from datetime import datetime, timedelta, timezone
@@ -35,12 +36,20 @@ def get_password_hash(password):
 
 
 def authenticate_user(username: str, password: str, session: Session):
-    user = session.exec(select(UserDB).where(
-        UserDB.name == username)).first()
+    # Query user from the database by username
+    user = session.exec(select(UserDB).where(UserDB.name == username)).first()
+
     if not user:
-        raise HTTPException(status_code=400, detail="User not found")
+        # Raise a 401 Unauthorized error if the user is not found
+        raise HTTPException(
+            status_code=401, detail="Incorrect username or password")
+
+    # Verify password
     if not verify_password(password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect password")
+        # Raise a 401 Unauthorized error if the password doesn't match
+        raise HTTPException(
+            status_code=401, detail="Incorrect username or password")
+
     return user
 
 
@@ -87,35 +96,62 @@ async def get_current_active_user(
     return current_user
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 @router.post("/token")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], response: Response, session=Depends(get_session)) -> Token:
-
-    user = authenticate_user(
-        form_data.username, form_data.password, session)
-
-    if not user:
+async def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    response: Response,
+    session=Depends(get_session)
+) -> Token:
+    try:
+        user = authenticate_user(
+            form_data.username, form_data.password, session)
+    except HTTPException as e:
+        # If authentication fails, raise the error
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=e.status_code,
+            detail=e.detail,
+            headers=e.headers,
         )
+
+    # Set access token expiration time
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRATION_MINUTES)
-    print(access_token_expires)
-    print(user)
-    userid = str(user.id)
-    access_token = create_access_token(
-        data={"sub": user.name, "email": user.email, "role": user.role, "userId": userid}, expires_delta=access_token_expires
-    )
-    response.set_cookie(
-        key="token",
-        value=access_token,
-        max_age=access_token_expires,
-        path="/",
-        httponly=True,
-        secure=False,
-        samesite="lax",
-    )
-    print('cookie set')
+
+    # Create the access token
+    try:
+        userid = str(user.id)
+        access_token = create_access_token(
+            data={"sub": user.name, "email": user.email,
+                  "role": user.role, "userId": userid},
+            expires_delta=access_token_expires
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while creating the access token.",
+        )
+
+    # Set the token in the response cookies
+    try:
+        response.set_cookie(
+            key="token",
+            value=access_token,
+            max_age=access_token_expires,
+            path="/",
+            httponly=True,
+            secure=False,  # Change to True in production
+            samesite="lax",
+        )
+        print('Cookie set')
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to set the authentication cookie."
+        )
 
     return Token(access_token=access_token, token_type="bearer")
 
